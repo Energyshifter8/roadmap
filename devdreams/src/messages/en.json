@@ -1,18 +1,21 @@
 {
-  "Home": {
-    "title": "Developer Roadmap",
-    "subtitle": "Choose your development path and start learning step by step"
-  },
-  "Tabs": {
+  "tabs": {
     "frontend": "Frontend",
     "backend": "Backend",
     "devops": "DevOps",
     "mobile": "Mobile"
   },
-  "Roadmap": {
-    "title": "{type} Development Roadmap"
+  "ui": {
+    "title": "Developer Roadmap",
+    "subtitle": "Pick your path and find where to start",
+    "loading": "Loading...",
+    "error": "Failed to fetch roadmap data",
+    "clickNode": "Click a node to see details",
+    "lang": "Language"
   },
-  "LangToggle": {
-    "label": "English"
+  "levels": {
+    "beginner": "Beginner",
+    "intermediate": "Intermediate",
+    "advanced": "Advanced"
   }
 }
