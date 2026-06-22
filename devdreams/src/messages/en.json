@@ -1,0 +1,18 @@
+{
+  "Home": {
+    "title": "Developer Roadmap",
+    "subtitle": "Choose your development path and start learning step by step"
+  },
+  "Tabs": {
+    "frontend": "Frontend",
+    "backend": "Backend",
+    "devops": "DevOps",
+    "mobile": "Mobile"
+  },
+  "Roadmap": {
+    "title": "{type} Development Roadmap"
+  },
+  "LangToggle": {
+    "label": "English"
+  }
+}
