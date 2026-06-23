@@ -1,21 +1,7 @@
 {
-  "tabs": {
-    "frontend": "Frontend",
-    "backend": "Backend",
-    "devops": "DevOps",
-    "mobile": "Mobile"
-  },
-  "ui": {
-    "title": "Developer Roadmap",
-    "subtitle": "Pick your path and find where to start",
-    "loading": "Loading...",
-    "error": "Failed to fetch roadmap data",
-    "clickNode": "Click a node to see details",
-    "lang": "Language"
-  },
-  "levels": {
-    "beginner": "Beginner",
-    "intermediate": "Intermediate",
-    "advanced": "Advanced"
-  }
+  "tabs": { "frontend": "Frontend", "backend": "Backend", "devops": "DevOps", "mobile": "Mobile" },
+  "ui": { "title": "Developer Roadmap", "loading": "Loading...", "error": "Failed to load", "comingSoon": "Coming soon", "clickHint": "Click a node to learn more" },
+  "panel": { "close": "Close", "learnMore": "Learn More" },
+  "lang": { "mn": "MN", "en": "EN" },
+  "levels": { "beginner": "Beginner", "intermediate": "Intermediate", "advanced": "Advanced", "recommended": "Recommended" }
 }

@@ -1,25 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ROADMAP_GITHUB_URLS, RoadmapType } from '@/lib/roadmapSources';
+import { ROADMAP_URLS, RoadmapType } from '@/lib/roadmapSources';
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ type: string }> }
 ) {
   const { type } = await params;
+  const url = ROADMAP_URLS[type as RoadmapType];
+  if (!url) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-  const url = ROADMAP_GITHUB_URLS[type as RoadmapType];
-  if (!url) {
-    return NextResponse.json({ error: 'Unknown roadmap type' }, { status: 404 });
-  }
+  const res = await fetch(url, { next: { revalidate: 3600 } });
+  if (!res.ok) return NextResponse.json({ error: 'Upstream failed' }, { status: 502 });
 
-  try {
-    const res = await fetch(url, {
-      next: { revalidate: 3600 },
-    });
-    if (!res.ok) throw new Error(`GitHub fetch failed: ${res.status}`);
-    const data = await res.json();
-    return NextResponse.json(data);
-  } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
-  }
+  const raw = await res.json();
+  return NextResponse.json(raw);
 }

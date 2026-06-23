@@ -1,21 +1,7 @@
 {
-  "tabs": {
-    "frontend": "Фронтенд",
-    "backend": "Бэкенд",
-    "devops": "ДевОпс",
-    "mobile": "Мобайл"
-  },
-  "ui": {
-    "title": "Хөгжүүлэгчийн замын зураг",
-    "subtitle": "Мэргэжлээ сонгоод эхлэх цэгээ ол",
-    "loading": "Ачааллаж байна...",
-    "error": "Өгөгдөл татахад алдаа гарлаа",
-    "clickNode": "Дэлгэрэнгүй мэдээлэл харахын тулд node дарна уу",
-    "lang": "Хэл"
-  },
-  "levels": {
-    "beginner": "Эхлэгч",
-    "intermediate": "Дунд",
-    "advanced": "Ахисан"
-  }
+  "tabs": { "frontend": "Фронтенд", "backend": "Бэкенд", "devops": "ДевОпс", "mobile": "Мобайл" },
+  "ui": { "title": "Хөгжүүлэгчийн замын зураг", "loading": "Ачааллаж байна...", "error": "Алдаа гарлаа", "comingSoon": "Удахгүй нэмэгдэнэ", "clickHint": "Node дарж дэлгэрэнгүй харна уу" },
+  "panel": { "close": "Хаах", "learnMore": "Дэлгэрэнгүй" },
+  "lang": { "mn": "МН", "en": "EN" },
+  "levels": { "beginner": "Эхлэгч", "intermediate": "Дунд", "advanced": "Ахисан", "recommended": "Санал болгох" }
 }
