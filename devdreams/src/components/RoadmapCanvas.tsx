@@ -6,6 +6,12 @@ import RoadmapNode from './RoadmapNode';
 
 const nodeTypes = { roadmapNode: RoadmapNode };
 
+const defaultEdgeOptions = {
+  type: 'smoothstep',
+  animated: false,
+  style: { strokeWidth: 2, stroke: '#52525b' },
+};
+
 export default function RoadmapCanvas() {
   const [nodes, , onNodesChange] = useNodesState(frontendNodes);
   const [edges, , onEdgesChange] = useEdgesState(frontendEdges);
@@ -20,7 +26,8 @@ export default function RoadmapCanvas() {
         nodeTypes={nodeTypes}
         fitView
         fitViewOptions={{ padding: 0.2 }}
-        defaultEdgeOptions={{ style: { stroke: '#52525b', strokeWidth: 1.5 } }}
+        defaultEdgeOptions={defaultEdgeOptions}
+        connectionMode="loose"
       >
         <Background color="#27272a" gap={20} />
         <Controls className="!bg-zinc-900 !border-zinc-700 !text-white" />

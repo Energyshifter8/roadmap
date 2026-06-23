@@ -87,78 +87,86 @@ export const frontendNodes: Node[] = [
 ];
 
 export const frontendEdges: Edge[] = [
+  // ── Spine ─────────────────────────────────────────
   // root → internet
   { id: 'e-root-internet', source: 'root', target: 'internet', type: 'smoothstep' },
-
-  // internet → topics
-  { id: 'e-internet-how', source: 'internet', target: 'how-internet', type: 'smoothstep' },
-  { id: 'e-internet-http', source: 'internet', target: 'http', type: 'smoothstep' },
-  { id: 'e-internet-browsers', source: 'internet', target: 'browsers', type: 'smoothstep' },
-  { id: 'e-internet-dns', source: 'internet', target: 'dns', type: 'smoothstep' },
   // internet → html
   { id: 'e-internet-html', source: 'internet', target: 'html', type: 'smoothstep' },
-
-  // html → topics
-  { id: 'e-html-basics', source: 'html', target: 'html-basics', type: 'smoothstep' },
-  { id: 'e-html-semantic', source: 'html', target: 'semantic-html', type: 'smoothstep' },
-  { id: 'e-html-forms', source: 'html', target: 'forms', type: 'smoothstep' },
-  { id: 'e-html-a11y', source: 'html', target: 'accessibility', type: 'smoothstep' },
-  { id: 'e-html-seo', source: 'html', target: 'seo-basics', type: 'smoothstep' },
   // html → css
   { id: 'e-html-css', source: 'html', target: 'css', type: 'smoothstep' },
-
-  // css → topics
-  { id: 'e-css-basics', source: 'css', target: 'css-basics', type: 'smoothstep' },
-  { id: 'e-css-layouts', source: 'css', target: 'layouts', type: 'smoothstep' },
-  { id: 'e-css-responsive', source: 'css', target: 'responsive', type: 'smoothstep' },
-  { id: 'e-css-frameworks', source: 'css', target: 'css-frameworks', type: 'smoothstep' },
   // css → js
   { id: 'e-css-js', source: 'css', target: 'js', type: 'smoothstep' },
-
-  // js → topics
-  { id: 'e-js-basics', source: 'js', target: 'js-basics', type: 'smoothstep' },
-  { id: 'e-js-dom', source: 'js', target: 'dom', type: 'smoothstep' },
-  { id: 'e-js-fetch', source: 'js', target: 'fetch-api', type: 'smoothstep' },
-  { id: 'e-js-es6', source: 'js', target: 'es6', type: 'smoothstep' },
   // js → vcs
   { id: 'e-js-vcs', source: 'js', target: 'vcs', type: 'smoothstep' },
-
-  // vcs → topics
-  { id: 'e-vcs-git', source: 'vcs', target: 'git', type: 'smoothstep' },
-  { id: 'e-vcs-github', source: 'vcs', target: 'github', type: 'smoothstep' },
   // vcs → pkg
   { id: 'e-vcs-pkg', source: 'vcs', target: 'pkg', type: 'smoothstep' },
-
-  // pkg → topics
-  { id: 'e-pkg-npm', source: 'pkg', target: 'npm', type: 'smoothstep' },
-  { id: 'e-pkg-pnpm', source: 'pkg', target: 'pnpm-node', type: 'smoothstep' },
-  { id: 'e-pkg-yarn', source: 'pkg', target: 'yarn', type: 'smoothstep' },
   // pkg → frameworks
   { id: 'e-pkg-fw', source: 'pkg', target: 'frameworks', type: 'smoothstep' },
-
-  // frameworks → topics
-  { id: 'e-fw-react', source: 'frameworks', target: 'react', type: 'smoothstep' },
-  { id: 'e-fw-vue', source: 'frameworks', target: 'vue', type: 'smoothstep' },
-  { id: 'e-fw-angular', source: 'frameworks', target: 'angular', type: 'smoothstep' },
   // frameworks → build
   { id: 'e-fw-build', source: 'frameworks', target: 'build', type: 'smoothstep' },
-
-  // build → topics
-  { id: 'e-build-vite', source: 'build', target: 'vite', type: 'smoothstep' },
-  { id: 'e-build-webpack', source: 'build', target: 'webpack', type: 'smoothstep' },
-  { id: 'e-build-eslint', source: 'build', target: 'eslint', type: 'smoothstep' },
   // build → testing
   { id: 'e-build-testing', source: 'build', target: 'testing', type: 'smoothstep' },
-
-  // testing → topics
-  { id: 'e-test-jest', source: 'testing', target: 'jest', type: 'smoothstep' },
-  { id: 'e-test-vitest', source: 'testing', target: 'vitest', type: 'smoothstep' },
-  { id: 'e-test-playwright', source: 'testing', target: 'playwright', type: 'smoothstep' },
   // testing → advanced
   { id: 'e-test-advanced', source: 'testing', target: 'advanced', type: 'smoothstep' },
 
-  // advanced → topics
-  { id: 'e-adv-ssr', source: 'advanced', target: 'ssr', type: 'smoothstep' },
-  { id: 'e-adv-perf', source: 'advanced', target: 'performance', type: 'smoothstep' },
-  { id: 'e-adv-sec', source: 'advanced', target: 'security', type: 'smoothstep' },
+  // ── Internet → left topics ────────────────────────
+  { id: 'e-internet-how', source: 'internet', target: 'how-internet', type: 'smoothstep', sourceHandle: 'left', targetHandle: 'left-target' },
+  { id: 'e-internet-http', source: 'internet', target: 'http', type: 'smoothstep', sourceHandle: 'left', targetHandle: 'left-target' },
+  // internet → right topics
+  { id: 'e-internet-browsers', source: 'internet', target: 'browsers', type: 'smoothstep', sourceHandle: 'right', targetHandle: 'right-target' },
+  { id: 'e-internet-dns', source: 'internet', target: 'dns', type: 'smoothstep', sourceHandle: 'right', targetHandle: 'right-target' },
+
+  // ── HTML → left topics ────────────────────────────
+  { id: 'e-html-basics', source: 'html', target: 'html-basics', type: 'smoothstep', sourceHandle: 'left', targetHandle: 'left-target' },
+  { id: 'e-html-semantic', source: 'html', target: 'semantic-html', type: 'smoothstep', sourceHandle: 'left', targetHandle: 'left-target' },
+  // html → right topics
+  { id: 'e-html-forms', source: 'html', target: 'forms', type: 'smoothstep', sourceHandle: 'right', targetHandle: 'right-target' },
+  { id: 'e-html-a11y', source: 'html', target: 'accessibility', type: 'smoothstep', sourceHandle: 'right', targetHandle: 'right-target' },
+  { id: 'e-html-seo', source: 'html', target: 'seo-basics', type: 'smoothstep', sourceHandle: 'right', targetHandle: 'right-target' },
+
+  // ── CSS → left topics ─────────────────────────────
+  { id: 'e-css-basics', source: 'css', target: 'css-basics', type: 'smoothstep', sourceHandle: 'left', targetHandle: 'left-target' },
+  { id: 'e-css-layouts', source: 'css', target: 'layouts', type: 'smoothstep', sourceHandle: 'left', targetHandle: 'left-target' },
+  // css → right topics
+  { id: 'e-css-responsive', source: 'css', target: 'responsive', type: 'smoothstep', sourceHandle: 'right', targetHandle: 'right-target' },
+  { id: 'e-css-frameworks', source: 'css', target: 'css-frameworks', type: 'smoothstep', sourceHandle: 'right', targetHandle: 'right-target' },
+
+  // ── JS → left topics ──────────────────────────────
+  { id: 'e-js-basics', source: 'js', target: 'js-basics', type: 'smoothstep', sourceHandle: 'left', targetHandle: 'left-target' },
+  { id: 'e-js-dom', source: 'js', target: 'dom', type: 'smoothstep', sourceHandle: 'left', targetHandle: 'left-target' },
+  // js → right topics
+  { id: 'e-js-fetch', source: 'js', target: 'fetch-api', type: 'smoothstep', sourceHandle: 'right', targetHandle: 'right-target' },
+  { id: 'e-js-es6', source: 'js', target: 'es6', type: 'smoothstep', sourceHandle: 'right', targetHandle: 'right-target' },
+
+  // ── VCS → left topics ─────────────────────────────
+  { id: 'e-vcs-git', source: 'vcs', target: 'git', type: 'smoothstep', sourceHandle: 'left', targetHandle: 'left-target' },
+  { id: 'e-vcs-github', source: 'vcs', target: 'github', type: 'smoothstep', sourceHandle: 'left', targetHandle: 'left-target' },
+
+  // ── PKG → right topics ────────────────────────────
+  { id: 'e-pkg-npm', source: 'pkg', target: 'npm', type: 'smoothstep', sourceHandle: 'right', targetHandle: 'right-target' },
+  { id: 'e-pkg-pnpm', source: 'pkg', target: 'pnpm-node', type: 'smoothstep', sourceHandle: 'right', targetHandle: 'right-target' },
+  { id: 'e-pkg-yarn', source: 'pkg', target: 'yarn', type: 'smoothstep', sourceHandle: 'right', targetHandle: 'right-target' },
+
+  // ── Frameworks → left topics ──────────────────────
+  { id: 'e-fw-react', source: 'frameworks', target: 'react', type: 'smoothstep', sourceHandle: 'left', targetHandle: 'left-target' },
+  { id: 'e-fw-vue', source: 'frameworks', target: 'vue', type: 'smoothstep', sourceHandle: 'left', targetHandle: 'left-target' },
+  { id: 'e-fw-angular', source: 'frameworks', target: 'angular', type: 'smoothstep', sourceHandle: 'left', targetHandle: 'left-target' },
+
+  // ── Build → left topics ───────────────────────────
+  { id: 'e-build-vite', source: 'build', target: 'vite', type: 'smoothstep', sourceHandle: 'left', targetHandle: 'left-target' },
+  { id: 'e-build-webpack', source: 'build', target: 'webpack', type: 'smoothstep', sourceHandle: 'left', targetHandle: 'left-target' },
+  // build → right topics
+  { id: 'e-build-eslint', source: 'build', target: 'eslint', type: 'smoothstep', sourceHandle: 'right', targetHandle: 'right-target' },
+
+  // ── Testing → left topics ─────────────────────────
+  { id: 'e-test-jest', source: 'testing', target: 'jest', type: 'smoothstep', sourceHandle: 'left', targetHandle: 'left-target' },
+  // testing → right topics
+  { id: 'e-test-vitest', source: 'testing', target: 'vitest', type: 'smoothstep', sourceHandle: 'right', targetHandle: 'right-target' },
+  { id: 'e-test-playwright', source: 'testing', target: 'playwright', type: 'smoothstep', sourceHandle: 'right', targetHandle: 'right-target' },
+
+  // ── Advanced → left topics ────────────────────────
+  { id: 'e-adv-ssr', source: 'advanced', target: 'ssr', type: 'smoothstep', sourceHandle: 'left', targetHandle: 'left-target' },
+  // advanced → right topics
+  { id: 'e-adv-perf', source: 'advanced', target: 'performance', type: 'smoothstep', sourceHandle: 'right', targetHandle: 'right-target' },
+  { id: 'e-adv-sec', source: 'advanced', target: 'security', type: 'smoothstep', sourceHandle: 'right', targetHandle: 'right-target' },
 ];
