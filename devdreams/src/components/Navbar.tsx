@@ -1,52 +1,100 @@
 'use client';
 import { useTranslations } from 'next-intl';
-import { useParams, usePathname } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { RoadmapType, TABS } from '@/lib/roadmapSources';
 
 type Props = {
   activeTab: RoadmapType;
   onTabChange: (t: RoadmapType) => void;
+  locale: string;
 };
 
-export default function Navbar({ activeTab, onTabChange }: Props) {
+export default function Navbar({ activeTab, onTabChange, locale }: Props) {
   const t = useTranslations('tabs');
-  const params = useParams();
-  const currentLocale = params?.locale as string;
+  const tLang = useTranslations('lang');
+  const router = useRouter();
   const pathname = usePathname();
 
-  const handleLanguageChange = (newLocale: string) => {
-    if (!pathname) return;
+  const switchLocale = () => {
+    const next = locale === 'mn' ? 'en' : 'mn';
     const segments = pathname.split('/');
-    segments[1] = newLocale; 
-    window.location.href = segments.join('/');
+    segments[1] = next;
+    router.push(segments.join('/'));
   };
 
   return (
-    <nav className="flex items-center justify-between px-3 py-2 border-b border-zinc-800 bg-black sticky top-0 z-10">
-      <div className="flex gap-1">
-        {TABS.map(({ key }) => (
-          <button
-            key={key}
-            onClick={() => onTabChange(key)}
-            className={`px-3 py-1.5 rounded text-xs font-mono transition-colors ${
-              activeTab === key
-                ? 'bg-white text-black font-bold'
-                : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
-            }`}
-          >
-            {t(key)}
-          </button>
-        ))}
+    <nav style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '0 16px',
+      height: 52,
+      background: '#18181b',
+      borderBottom: '1px solid #3f3f46',
+      position: 'sticky',
+      top: 0,
+      zIndex: 50,
+    }}>
+      {/* Logo */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+        <span style={{
+          fontFamily: 'monospace',
+          fontWeight: 800,
+          fontSize: 15,
+          color: '#f5a623',
+          letterSpacing: 1,
+        }}>
+          devdreams
+        </span>
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: 4 }}>
+          {TABS.map(({ key, icon }) => (
+            <button
+              key={key}
+              onClick={() => onTabChange(key)}
+              style={{
+                padding: '5px 14px',
+                borderRadius: 6,
+                fontSize: 13,
+                fontWeight: activeTab === key ? 700 : 400,
+                background: activeTab === key ? '#f5a623' : 'transparent',
+                color: activeTab === key ? '#000' : '#a1a1aa',
+                border: activeTab === key ? '1px solid #d4861a' : '1px solid transparent',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                transition: 'all 0.15s',
+              }}
+            >
+              <span>{icon}</span>
+              <span>{t(key)}</span>
+            </button>
+          ))}
+        </div>
       </div>
+
+      {/* Lang switch */}
       <button
-        onClick={() => handleLanguageChange(currentLocale === 'mn' ? 'en' : 'mn')}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-mono border border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors"
+        onClick={switchLocale}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '5px 12px',
+          borderRadius: 6,
+          fontSize: 12,
+          fontWeight: 600,
+          background: 'transparent',
+          color: '#a1a1aa',
+          border: '1px solid #3f3f46',
+          cursor: 'pointer',
+          fontFamily: 'monospace',
+        }}
       >
-        {currentLocale === 'mn' ? (
-          <span>MN</span>
-        ) : (
-          <span>EN</span>
-        )}
+        <span>{locale === 'mn' ? '🇲🇳' : '🇬🇧'}</span>
+        <span>{locale === 'mn' ? tLang('en') : tLang('mn')}</span>
       </button>
     </nav>
   );

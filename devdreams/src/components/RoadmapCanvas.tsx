@@ -15,15 +15,10 @@ import { useTranslations } from 'next-intl';
 
 const nodeTypes = { roadmapNode: RoadmapNode };
 
-// Map roadmap.sh node types → our level styles
-function mapLevel(type: string, _style?: Record<string, string>): string {
-  const t = type?.toLowerCase() ?? '';
-  if (t === 'title') return 'root';
-  if (t === 'topic') return 'section';
+function mapLevel(type: string): string {
+  const t = (type ?? '').toLowerCase();
+  if (t === 'section' || t === 'group') return 'section';
   if (t === 'subtopic') return 'topic';
-  if (t === 'button') return 'recommended';
-  if (t === 'label') return 'optional';
-  if (t === 'paragraph' || t === 'legend') return 'note';
   return 'topic';
 }
 
@@ -32,51 +27,35 @@ function transformRoadmapData(raw: any): { nodes: Node[]; edges: Edge[] } {
   const rawEdges: any[] = raw?.edges ?? [];
 
   const nodes: Node[] = rawNodes
-    .filter((n: any) => {
-      if (!n?.id || !n?.position) return false;
-      // skip decorative / non-visual nodes
-      const t = n.type ?? '';
-      if (t === 'vertical') return false;
-      if (t === 'legend') return false;
-      if (t === 'paragraph' && !(n.data?.label ?? '').trim()) return false;
-      return true;
-    })
+    .filter((n: any) => n?.id && n?.position)
     .map((n: any) => ({
       id: String(n.id),
       type: 'roadmapNode',
       position: {
-        x: Number(n.position?.x ?? 0),
-        y: Number(n.position?.y ?? 0),
+        x: Number(n.position?.x ?? 0) * 1.4,
+        y: Number(n.position?.y ?? 0) * 1.4,
       },
       data: {
         label: n.data?.label ?? n.data?.text ?? String(n.id),
-        level: mapLevel(n.type ?? '', n.style ?? {}),
+        level: mapLevel(n.type ?? ''),
         description: n.data?.description ?? '',
         nodeType: n.type ?? 'topic',
       },
-      width: n.width,
-      height: n.height,
     }));
 
   const edges: Edge[] = rawEdges
     .filter((e: any) => e?.id && e?.source && e?.target)
-    .map((e: any) => {
-      const s = e.style ?? {};
-      return {
-        id: String(e.id),
-        source: String(e.source),
-        target: String(e.target),
-        sourceHandle: e.sourceHandle,
-        targetHandle: e.targetHandle,
-        type: 'smoothstep',
-        style: {
-          stroke: s.stroke ?? '#3b82f6',
-          strokeWidth: s.strokeWidth ?? 1.5,
-          strokeDasharray: s.strokeDasharray,
-          strokeLinecap: s.strokeLinecap,
-        },
-      };
-    });
+    .map((e: any) => ({
+      id: String(e.id),
+      source: String(e.source),
+      target: String(e.target),
+      type: 'smoothstep',
+      style: {
+        stroke: e.data?.isExternal ? '#6366f1' : '#3b82f6',
+        strokeWidth: 2,
+        strokeDasharray: e.data?.isExternal ? '6,4' : undefined,
+      },
+    }));
 
   return { nodes, edges };
 }
@@ -85,8 +64,8 @@ type Props = { type: RoadmapType };
 
 export default function RoadmapCanvas({ type }: Props) {
   const t = useTranslations('ui');
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNode, setSelectedNode] = useState<{
     label: string; level: string; description?: string;
   } | null>(null);
@@ -130,7 +109,7 @@ export default function RoadmapCanvas({ type }: Props) {
 
   return (
     <>
-      <div style={{ width: '100%', height: 'calc(100vh - 52px)' }} className="bg-black">
+      <div style={{ width: '100%', height: 'calc(100vh - 52px)', background: '#0a0a0a' }}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -139,24 +118,34 @@ export default function RoadmapCanvas({ type }: Props) {
           nodeTypes={nodeTypes}
           onNodeClick={onNodeClick}
           fitView
-          fitViewOptions={{ padding: 0.1 }}
-          minZoom={0.1}
-          maxZoom={2}
+          fitViewOptions={{ padding: 0.08 }}
+          minZoom={0.05}
+          maxZoom={3}
           defaultEdgeOptions={{
-            style: { stroke: '#3b82f6', strokeWidth: 1.5 },
+            style: { stroke: '#3b82f6', strokeWidth: 2 },
           }}
+          proOptions={{ hideAttribution: true }}
         >
-          <Background color="#27272a" gap={24} size={1} />
-          <Controls className="!bg-zinc-900 !border-zinc-700 !text-white" />
+          <Background color="#222" gap={32} size={1} />
+          <Controls
+            style={{
+              background: '#18181b',
+              border: '1px solid #3f3f46',
+              borderRadius: 8,
+            }}
+          />
           <MiniMap
             nodeColor={(n) => {
               const level = (n.data as any)?.level;
-              if (level === 'section') return '#fbbf24';
-              if (level === 'recommended') return '#4ade80';
+              if (level === 'section') return '#f5a623';
               return '#52525b';
             }}
-            maskColor="rgba(0,0,0,0.85)"
-            className="!bg-zinc-900 !border-zinc-700"
+            maskColor="rgba(0,0,0,0.88)"
+            style={{
+              background: '#18181b',
+              border: '1px solid #3f3f46',
+              borderRadius: 8,
+            }}
           />
         </ReactFlow>
       </div>

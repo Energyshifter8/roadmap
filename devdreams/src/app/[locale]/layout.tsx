@@ -25,7 +25,7 @@ export default async function LocaleLayout({
   const messages = await getMessages();
   return (
     <html lang={locale} className="dark">
-      <body className={`${geistSans.variable} ${geistMono.variable} bg-black text-white antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <NextIntlClientProvider messages={messages}>
           <QueryProvider>{children}</QueryProvider>
         </NextIntlClientProvider>
