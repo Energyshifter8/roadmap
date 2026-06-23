@@ -1,23 +1,19 @@
-import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
+'use client';
+import { Handle, Position } from '@xyflow/react';
 
-export type RoadmapNodeData = {
-  label: string;
-  description: string;
+const levelStyles: Record<string, string> = {
+  root: 'bg-white text-black font-bold text-sm px-4 py-2 rounded border-2 border-white',
+  section: 'bg-zinc-800 text-white font-semibold text-xs px-3 py-1.5 rounded border border-zinc-500',
+  topic: 'bg-zinc-900 text-zinc-300 text-xs px-3 py-1.5 rounded border border-zinc-700',
+  recommended: 'bg-zinc-900 text-green-400 text-xs px-3 py-1.5 rounded border border-green-500',
 };
 
-export type RoadmapNodeType = Node<RoadmapNodeData, "stage">;
-
-export default function RoadmapNode({ data }: NodeProps<RoadmapNodeType>) {
+export default function RoadmapNode({ data }: { data: { label: string; level: string } }) {
   return (
-    <div className="flex flex-col items-center rounded-xl border border-zinc-200 bg-white px-6 py-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
-      <Handle type="target" position={Position.Top} />
-      <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-        {data.label}
-      </span>
-      <span className="mt-1 max-w-48 text-center text-xs text-zinc-500 dark:text-zinc-400">
-        {data.description}
-      </span>
-      <Handle type="source" position={Position.Bottom} />
+    <div className={levelStyles[data.level] ?? levelStyles.topic}>
+      <Handle type="target" position={Position.Top} className="!bg-zinc-500 !w-1.5 !h-1.5" />
+      <span>{data.label}</span>
+      <Handle type="source" position={Position.Bottom} className="!bg-zinc-500 !w-1.5 !h-1.5" />
     </div>
   );
 }
