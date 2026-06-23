@@ -1,159 +1,151 @@
 'use client';
-import { useCallback, useEffect, useState } from 'react';
-import {
-  ReactFlow, Background, Controls, MiniMap,
-  useNodesState, useEdgesState,
-  type NodeMouseHandler,
-  type Node, type Edge,
-} from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-import { useQuery } from '@tanstack/react-query';
-import RoadmapNode from './RoadmapNode';
-import SidePanel from './SidePanel';
-import { RoadmapType } from '@/lib/roadmapSources';
-import { useTranslations } from 'next-intl';
+import { useState } from 'react';
+import { frontendSections, type RoadmapNode } from '@/data/frontendRoadmap';
 
-const nodeTypes = { roadmapNode: RoadmapNode };
-
-function mapLevel(type: string): string {
-  const t = (type ?? '').toLowerCase();
-  if (t === 'section' || t === 'group') return 'section';
-  if (t === 'subtopic') return 'topic';
-  return 'topic';
+function TopicTag({
+  node,
+  done,
+  onToggle,
+}: {
+  node: RoadmapNode;
+  done: boolean;
+  onToggle: (id: string) => void;
+}) {
+  return (
+    <button
+      onClick={() => onToggle(node.id)}
+      className={`
+        flex items-center gap-2 px-3 py-1.5 text-xs font-bold border-2 border-black rounded-md w-full text-left
+        transition-all cursor-pointer
+        ${done
+          ? 'bg-[#f3e8ff] text-black'
+          : 'bg-[#f1f3f5] text-zinc-700 hover:bg-[#e9ecef]'
+        }
+      `}
+    >
+      {done ? (
+        <span className="text-purple-600 font-bold text-sm leading-none shrink-0">✓</span>
+      ) : node.level === 'recommended' ? (
+        <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
+      ) : null}
+      <span className="truncate">{node.label}</span>
+    </button>
+  );
 }
 
-function transformRoadmapData(raw: any): { nodes: Node[]; edges: Edge[] } {
-  const rawNodes: any[] = raw?.nodes ?? [];
-  const rawEdges: any[] = raw?.edges ?? [];
-
-  const nodes: Node[] = rawNodes
-    .filter((n: any) => n?.id && n?.position)
-    .map((n: any) => ({
-      id: String(n.id),
-      type: 'roadmapNode',
-      position: {
-        x: Number(n.position?.x ?? 0) * 1.4,
-        y: Number(n.position?.y ?? 0) * 1.4,
-      },
-      data: {
-        label: n.data?.label ?? n.data?.text ?? String(n.id),
-        level: mapLevel(n.type ?? ''),
-        description: n.data?.description ?? '',
-        nodeType: n.type ?? 'topic',
-      },
-    }));
-
-  const edges: Edge[] = rawEdges
-    .filter((e: any) => e?.id && e?.source && e?.target)
-    .map((e: any) => ({
-      id: String(e.id),
-      source: String(e.source),
-      target: String(e.target),
-      type: 'smoothstep',
-      style: {
-        stroke: e.data?.isExternal ? '#6366f1' : '#3b82f6',
-        strokeWidth: 2,
-        strokeDasharray: e.data?.isExternal ? '6,4' : undefined,
-      },
-    }));
-
-  return { nodes, edges };
+function GroupBox({
+  items,
+  completed,
+  onToggle,
+}: {
+  items: RoadmapNode[];
+  completed: Set<string>;
+  onToggle: (id: string) => void;
+}) {
+  return (
+    <div className="bg-white border-2 border-zinc-900 rounded-xl p-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] relative min-w-[200px]">
+      <div className="absolute left-4 top-3 bottom-3 w-0.5 bg-zinc-300" />
+      <div className="flex flex-col gap-2 pl-8">
+        {items.map((item) => (
+          <TopicTag key={item.id} node={item} done={completed.has(item.id)} onToggle={onToggle} />
+        ))}
+      </div>
+    </div>
+  );
 }
 
-type Props = { type: RoadmapType };
+export default function RoadmapCanvas() {
+  const [completed, setCompleted] = useState<Set<string>>(new Set());
 
-export default function RoadmapCanvas({ type }: Props) {
-  const t = useTranslations('ui');
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [selectedNode, setSelectedNode] = useState<{
-    label: string; level: string; description?: string;
-  } | null>(null);
-  const [panelOpen, setPanelOpen] = useState(false);
-
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ['roadmap', type],
-    queryFn: async () => {
-      const res = await fetch(`/api/roadmap/${type}`);
-      if (!res.ok) throw new Error('fetch failed');
-      return res.json();
-    },
-    staleTime: 1000 * 60 * 60,
-  });
-
-  useEffect(() => {
-    if (!data) return;
-    const { nodes: n, edges: e } = transformRoadmapData(data);
-    setNodes(n);
-    setEdges(e);
-  }, [data, setNodes, setEdges]);
-
-  const onNodeClick: NodeMouseHandler = useCallback((_e, node) => {
-    const d = node.data as { label: string; level: string; description?: string };
-    if (!d.label) return;
-    setSelectedNode(d);
-    setPanelOpen(true);
-  }, []);
-
-  if (isLoading) return (
-    <div className="flex items-center justify-center h-full text-zinc-500 font-mono text-sm animate-pulse">
-      {t('loading')}
-    </div>
-  );
-
-  if (isError) return (
-    <div className="flex items-center justify-center h-full text-red-500 font-mono text-sm">
-      {t('error')}
-    </div>
-  );
+  const toggle = (id: string) => {
+    setCompleted((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   return (
-    <>
-      <div style={{ width: '100%', height: 'calc(100vh - 52px)', background: '#0a0a0a' }}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          nodeTypes={nodeTypes}
-          onNodeClick={onNodeClick}
-          fitView
-          fitViewOptions={{ padding: 0.08 }}
-          minZoom={0.05}
-          maxZoom={3}
-          defaultEdgeOptions={{
-            style: { stroke: '#3b82f6', strokeWidth: 2 },
-          }}
-          proOptions={{ hideAttribution: true }}
-        >
-          <Background color="#222" gap={32} size={1} />
-          <Controls
-            style={{
-              background: '#18181b',
-              border: '1px solid #3f3f46',
-              borderRadius: 8,
-            }}
-          />
-          <MiniMap
-            nodeColor={(n) => {
-              const level = (n.data as any)?.level;
-              if (level === 'section') return '#f5a623';
-              return '#52525b';
-            }}
-            maskColor="rgba(0,0,0,0.88)"
-            style={{
-              background: '#18181b',
-              border: '1px solid #3f3f46',
-              borderRadius: 8,
-            }}
-          />
-        </ReactFlow>
+    <div className="min-h-screen bg-[#f8f9fa] py-16">
+      <div className="max-w-5xl mx-auto relative px-4">
+        {/* Vertical spine */}
+        <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-zinc-900 -translate-x-1/2 pointer-events-none" />
+
+        {/* Root header */}
+        <div className="flex justify-center mb-24 relative z-10">
+          <div className="bg-[#ffd000] border-2 border-zinc-900 px-10 py-3.5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <h1 className="font-extrabold text-lg uppercase tracking-wide text-zinc-900">
+              Frontend Developer
+            </h1>
+          </div>
+        </div>
+
+        {/* Sections */}
+        {frontendSections.map((sec) => {
+          const hasLeft = sec.left.length > 0;
+          const hasRight = sec.right.length > 0;
+          const completedMain = completed.has(sec.node.id);
+
+          if (sec.node.level === 'note') {
+            return (
+              <div key={sec.node.id} className="flex justify-center mb-20 relative z-10">
+                <div className="text-zinc-400 italic text-sm px-4 py-2 border border-dashed border-zinc-300 rounded-lg">
+                  {sec.node.label}
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div key={sec.node.id} className="mb-20 relative">
+              <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-4">
+                {/* Left column */}
+                <div className="flex justify-end">
+                  {hasLeft && (
+                    <div className="flex items-center gap-3">
+                      <GroupBox items={sec.left} completed={completed} onToggle={toggle} />
+                      <div className="w-6 border-t-2 border-dashed border-blue-500 shrink-0" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Center column */}
+                <div className="relative z-10 flex justify-center">
+                  <button
+                    onClick={() => toggle(sec.node.id)}
+                    className={`
+                      px-6 py-2.5
+                      shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
+                      hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+                      transition-all cursor-pointer text-center
+                      border-2
+                      ${completedMain
+                        ? 'bg-[#ffd000] border-zinc-900 text-zinc-900'
+                        : 'bg-white border-zinc-300 text-zinc-500 hover:border-zinc-900 hover:text-zinc-900'
+                      }
+                    `}
+                  >
+                    <span className="font-bold text-sm whitespace-nowrap">
+                      {sec.node.label}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Right column */}
+                <div className="flex justify-start">
+                  {hasRight && (
+                    <div className="flex items-center gap-3">
+                      <div className="w-6 border-t-2 border-dashed border-blue-500 shrink-0" />
+                      <GroupBox items={sec.right} completed={completed} onToggle={toggle} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
-      <SidePanel
-        open={panelOpen}
-        onClose={() => setPanelOpen(false)}
-        node={selectedNode}
-      />
-    </>
+    </div>
   );
 }
