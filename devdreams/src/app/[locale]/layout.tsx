@@ -1,8 +1,7 @@
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
-import { GeistMono } from 'geist/font/mono';
-import QueryProvider from '@/components/QueryProvider';
-import '../globals.css';
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages } from "next-intl/server";
+import QueryProvider from "@/components/QueryProvider";
+import "../globals.css";
 
 export default async function LocaleLayout({
   children,
@@ -15,7 +14,7 @@ export default async function LocaleLayout({
   const messages = await getMessages();
   return (
     <html lang={locale} className="dark">
-      <body className={`${GeistMono.className} bg-black text-white antialiased`}>
+      <body className="bg-black text-white antialiased">
         <NextIntlClientProvider messages={messages}>
           <QueryProvider>{children}</QueryProvider>
         </NextIntlClientProvider>
