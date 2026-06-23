@@ -24,10 +24,11 @@ export default function RoadmapCanvas() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         nodeTypes={nodeTypes}
-        fitView
+        fitView={true}
         fitViewOptions={{ padding: 0.2 }}
         defaultEdgeOptions={defaultEdgeOptions}
         connectionMode="loose"
+        edgesFocusable={false}
       >
         <Background color="#27272a" gap={20} />
         <Controls className="!bg-zinc-900 !border-zinc-700 !text-white" />

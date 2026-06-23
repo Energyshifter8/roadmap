@@ -3,12 +3,17 @@ import { getTranslations } from "next-intl/server";
 import RoadmapDiagram from "@/components/RoadmapDiagram";
 import TabSwitcher from "@/components/TabSwitcher";
 import LangToggle from "@/components/LangToggle";
-import frontend from "@/data/frontend.json";
+import { frontendNodes, frontendEdges } from "@/data/frontendRoadmap";
 import backend from "@/data/backend.json";
 import devops from "@/data/devops.json";
 import mobile from "@/data/mobile.json";
 
-const roadmaps = { frontend, backend, devops, mobile } as const;
+const roadmaps: Record<string, any> = { 
+  frontend: { nodes: frontendNodes, edges: frontendEdges }, 
+  backend, 
+  devops, 
+  mobile 
+};
 
 type Props = {
   params: Promise<{ type: string; locale: string }>;
