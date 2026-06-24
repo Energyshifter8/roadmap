@@ -1,17 +1,19 @@
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
-import { Geist, Geist_Mono } from 'next/font/google';
-import "./globals.css";
+import AppShell from '@/components/AppShell';
+import './globals.css';
 
-const geistSans = Geist({
-  subsets: ["latin", "cyrillic"],
-  variable: "--font-geist-sans",
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
 });
 
-const geistMono = Geist_Mono({
-  subsets: ["latin", "cyrillic"],
-  variable: "--font-geist-mono",
-});
+export const metadata: Metadata = {
+  title: 'DevDreams Platform',
+  description: 'Roadmap platform',
+};
 
 export default async function RootLayout({
   children,
@@ -22,10 +24,10 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className="dark">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <html lang={locale}>
+      <body className={`${inter.variable} font-sans antialiased`}>
         <NextIntlClientProvider messages={messages}>
-          {children}
+          <AppShell>{children}</AppShell>
         </NextIntlClientProvider>
       </body>
     </html>
