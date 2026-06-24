@@ -9,8 +9,10 @@ import RoadmapTabs, { type RoadmapTabId } from './RoadmapTabs';
 /*  Types                                                             */
 /* ------------------------------------------------------------------ */
 
-type LineCoords = { x1: number; y1: number; x2: number; y2: number };
-type Lines = { left?: LineCoords; right?: LineCoords };
+interface BranchPath {
+  id: string;
+  d: string;
+}
 
 /* ------------------------------------------------------------------ */
 /*  TopicTag — single clickable topic                                 */
@@ -29,6 +31,7 @@ const TopicTag = memo(function TopicTag({ node, done, onToggle }: TopicTagProps)
   return (
     <div className="relative group">
       <button
+        data-node-id={node.id}
         onClick={() => onToggle(node.id)}
         className={`
           flex items-center gap-2 px-3 py-1.5 text-xs font-bold border-2 border-black
@@ -108,11 +111,9 @@ function SectionRow({ section, completed, onToggle }: SectionRowProps) {
   const t = useTranslations('roadmap');
   const containerRef = useRef<HTMLDivElement>(null);
   const centerRef = useRef<HTMLDivElement>(null);
-  const leftRef = useRef<HTMLDivElement>(null);
-  const rightRef = useRef<HTMLDivElement>(null);
-  const [lines, setLines] = useState<Lines>({});
+  const [paths, setPaths] = useState<BranchPath[]>([]);
 
-  /* Measure positions & draw SVG connector lines */
+  /* Measure every topic button and draw branching SVG paths */
   const measure = useCallback(() => {
     const c = containerRef.current;
     const btn = centerRef.current;
@@ -120,31 +121,41 @@ function SectionRow({ section, completed, onToggle }: SectionRowProps) {
 
     const cRect = c.getBoundingClientRect();
     const btnRect = btn.getBoundingClientRect();
-    const cy = btnRect.top + btnRect.height / 2 - cRect.top;
 
-    const next: Lines = {};
+    const centerY = btnRect.top + btnRect.height / 2 - cRect.top;
+    const centerLeft = btnRect.left - cRect.left;
+    const centerRight = btnRect.right - cRect.left;
 
-    if (leftRef.current) {
-      const l = leftRef.current.getBoundingClientRect();
-      next.left = {
-        x1: l.right - cRect.left,
-        y1: l.top + l.height / 2 - cRect.top,
-        x2: btnRect.left - cRect.left,
-        y2: cy,
-      };
-    }
+    const branches: BranchPath[] = [];
 
-    if (rightRef.current) {
-      const r = rightRef.current.getBoundingClientRect();
-      next.right = {
-        x1: btnRect.right - cRect.left,
-        y1: cy,
-        x2: r.left - cRect.left,
-        y2: r.top + r.height / 2 - cRect.top,
-      };
-    }
+    c.querySelectorAll<HTMLElement>('[data-node-id]').forEach((el) => {
+      const tRect = el.getBoundingClientRect();
+      const topicLeft = tRect.left - cRect.left;
+      const topicRight = tRect.right - cRect.left;
+      const topicY = tRect.top + tRect.height / 2 - cRect.top;
 
-    setLines(next);
+      if (topicLeft > btnRect.right - cRect.left) {
+        /* Topic is to the right of center — smooth S-curve */
+        const dx = topicLeft - centerRight;
+        const cp1x = centerRight + dx * 0.4;
+        const cp2x = centerRight + dx * 0.6;
+        branches.push({
+          id: el.dataset.nodeId!,
+          d: `M ${centerRight} ${centerY} C ${cp1x} ${centerY}, ${cp2x} ${topicY}, ${topicLeft} ${topicY}`,
+        });
+      } else if (topicRight < btnRect.left - cRect.left) {
+        /* Topic is to the left of center — smooth S-curve */
+        const dx = topicRight - centerLeft;
+        const cp1x = centerLeft + dx * 0.4;
+        const cp2x = centerLeft + dx * 0.6;
+        branches.push({
+          id: el.dataset.nodeId!,
+          d: `M ${centerLeft} ${centerY} C ${cp1x} ${centerY}, ${cp2x} ${topicY}, ${topicRight} ${topicY}`,
+        });
+      }
+    });
+
+    setPaths(branches);
   }, []);
 
   useEffect(() => {
@@ -161,7 +172,7 @@ function SectionRow({ section, completed, onToggle }: SectionRowProps) {
   /* ---- Note row ---- */
   if (section.node.level === 'note') {
     return (
-      <div className="flex justify-center mb-20 relative z-10">
+      <div className="flex justify-center mb-16 relative z-10">
         <div className="text-zinc-400 italic text-sm px-4 py-2 border border-dashed border-zinc-300 rounded-lg">
           {t.has(section.node.id) ? t(section.node.id) : section.node.label}
         </div>
@@ -174,36 +185,30 @@ function SectionRow({ section, completed, onToggle }: SectionRowProps) {
   const done = !!completed[section.node.id];
 
   return (
-    <div ref={containerRef} className="mb-20 relative">
-      {/* SVG connector overlay */}
+    <div ref={containerRef} className="mb-24 relative">
+      {/* SVG branching connector overlay */}
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none z-0"
         style={{ overflow: 'visible' }}
       >
-        {lines.left && (
-          <line
-            x1={lines.left.x1} y1={lines.left.y1}
-            x2={lines.left.x2} y2={lines.left.y2}
-            stroke="#3b82f6" strokeWidth={2} strokeDasharray="6,4"
+        {paths.map((p) => (
+          <path
+            key={p.id}
+            d={p.d}
+            fill="none"
+            stroke="#3b82f6"
+            strokeWidth={2}
+            strokeDasharray="6,4"
           />
-        )}
-        {lines.right && (
-          <line
-            x1={lines.right.x1} y1={lines.right.y1}
-            x2={lines.right.x2} y2={lines.right.y2}
-            stroke="#3b82f6" strokeWidth={2} strokeDasharray="6,4"
-          />
-        )}
+        ))}
       </svg>
 
       {/* 3-column grid */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-4">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-x-24">
         {/* Left column */}
         <div className="flex justify-end">
           {hasLeft && (
-            <div ref={leftRef}>
-              <GroupBox items={section.left} completed={completed} onToggle={onToggle} />
-            </div>
+            <GroupBox items={section.left} completed={completed} onToggle={onToggle} />
           )}
         </div>
 
@@ -231,9 +236,7 @@ function SectionRow({ section, completed, onToggle }: SectionRowProps) {
         {/* Right column */}
         <div className="flex justify-start">
           {hasRight && (
-            <div ref={rightRef}>
-              <GroupBox items={section.right} completed={completed} onToggle={onToggle} />
-            </div>
+            <GroupBox items={section.right} completed={completed} onToggle={onToggle} />
           )}
         </div>
       </div>
