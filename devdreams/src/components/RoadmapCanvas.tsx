@@ -1,6 +1,8 @@
 'use client';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { frontendSections, type RoadmapNode } from '@/data/frontendRoadmap';
+import LocaleSwitcher from './LocaleSwitcher';
 
 function TopicTag({
   node,
@@ -11,6 +13,9 @@ function TopicTag({
   done: boolean;
   onToggle: (id: string) => void;
 }) {
+  const t = useTranslations('roadmap');
+  const label = t.has(node.id) ? t(node.id) : node.label;
+
   return (
     <button
       onClick={() => onToggle(node.id)}
@@ -28,7 +33,7 @@ function TopicTag({
       ) : node.level === 'recommended' ? (
         <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
       ) : null}
-      <span className="truncate">{node.label}</span>
+      <span className="truncate">{label}</span>
     </button>
   );
 }
@@ -56,6 +61,7 @@ function GroupBox({
 
 export default function RoadmapCanvas() {
   const [completed, setCompleted] = useState<Set<string>>(new Set());
+  const t = useTranslations('roadmap');
 
   const toggle = (id: string) => {
     setCompleted((prev) => {
@@ -65,6 +71,8 @@ export default function RoadmapCanvas() {
       return next;
     });
   };
+
+  const title = t.has('title') ? t('title') : 'Frontend Developer';
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] py-16">
@@ -76,7 +84,7 @@ export default function RoadmapCanvas() {
         <div className="flex justify-center mb-24 relative z-10">
           <div className="bg-[#ffd000] border-2 border-zinc-900 px-10 py-3.5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
             <h1 className="font-extrabold text-lg uppercase tracking-wide text-zinc-900">
-              Frontend Developer
+              {title}
             </h1>
           </div>
         </div>
@@ -91,7 +99,7 @@ export default function RoadmapCanvas() {
             return (
               <div key={sec.node.id} className="flex justify-center mb-20 relative z-10">
                 <div className="text-zinc-400 italic text-sm px-4 py-2 border border-dashed border-zinc-300 rounded-lg">
-                  {sec.node.label}
+                  {t.has(sec.node.id) ? t(sec.node.id) : sec.node.label}
                 </div>
               </div>
             );
@@ -127,7 +135,7 @@ export default function RoadmapCanvas() {
                     `}
                   >
                     <span className="font-bold text-sm whitespace-nowrap">
-                      {sec.node.label}
+                      {t.has(sec.node.id) ? t(sec.node.id) : sec.node.label}
                     </span>
                   </button>
                 </div>
@@ -146,6 +154,7 @@ export default function RoadmapCanvas() {
           );
         })}
       </div>
+      <LocaleSwitcher />
     </div>
   );
 }
