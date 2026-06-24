@@ -1,4 +1,11 @@
 {
+  "tabs": {
+    "frontend": "Frontend",
+    "backend": "Backend",
+    "devops": "DevOps",
+    "mobile": "Mobile",
+    "coming-soon": "Coming Soon"
+  },
   "roadmap": {
     "title": "Frontend Developer",
     "internet": "Internet",

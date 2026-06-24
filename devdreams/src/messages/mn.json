@@ -1,4 +1,11 @@
 {
+  "tabs": {
+    "frontend": "Фронтенд",
+    "backend": "Бэкенд",
+    "devops": "ДевОпс",
+    "mobile": "Мобайл",
+    "coming-soon": "Тун удахгүй"
+  },
   "roadmap": {
     "title": "Фронтенд Хөгжүүлэгч",
     "internet": "Интернет",
