@@ -256,22 +256,25 @@ const ROADMAP_TABS: { id: RoadmapTabId; disabled?: boolean }[] = [
 
 export default function RoadmapCanvas() {
   const [activeTab, setActiveTab] = useState<RoadmapTabId>('frontend');
-  const [completed, setCompleted] = useState<Record<string, boolean>>(() => {
-    if (typeof window === 'undefined') return {};
+  const [completed, setCompleted] = useState<Record<string, boolean>>({});
+
+  /* Hydrate from localStorage after mount (client only) */
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : {};
-    } catch {
-      return {};
-    }
-  });
+      if (raw) setCompleted(JSON.parse(raw));
+    } catch { /* ignore corrupted data */ }
+    setHydrated(true);
+  }, []);
 
-  /* Persist to localStorage */
+  /* Persist to localStorage on every change after hydration */
   useEffect(() => {
+    if (!hydrated) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(completed));
     } catch { /* quota exceeded, silently ignore */ }
-  }, [completed]);
+  }, [completed, hydrated]);
 
   const toggle = useCallback((id: string) => {
     setCompleted((prev) => ({ ...prev, [id]: !prev[id] }));
