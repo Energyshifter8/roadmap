@@ -32,6 +32,7 @@ export default function RoadmapTabs({
           return (
             <div key={tab.id} className="relative group">
               <button
+                type="button"
                 disabled
                 className="
                   px-8 py-3.5 text-base font-black tracking-wide rounded-lg
@@ -66,6 +67,7 @@ export default function RoadmapTabs({
 
         return (
           <button
+            type="button"
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
             className={`

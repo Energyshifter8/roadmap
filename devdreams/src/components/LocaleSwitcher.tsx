@@ -11,6 +11,7 @@ export default function LocaleSwitcher() {
 
   function switchLocale(locale: string) {
     startTransition(() => {
+      // biome-ignore lint/suspicious/noDocumentCookie: Next.js locale strategy
       document.cookie = `NEXT_LOCALE=${locale}; path=/; max-age=31536000; SameSite=Lax`;
       router.refresh();
     });
@@ -19,6 +20,7 @@ export default function LocaleSwitcher() {
   return (
     <div className="fixed top-4 right-4 z-50 flex gap-1 bg-white border-2 border-zinc-900 rounded-lg p-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
       <button
+        type="button"
         onClick={() => switchLocale("en")}
         disabled={isPending}
         className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${
@@ -30,6 +32,7 @@ export default function LocaleSwitcher() {
         EN
       </button>
       <button
+        type="button"
         onClick={() => switchLocale("mn")}
         disabled={isPending}
         className={`px-3 py-1 text-xs font-bold rounded-md transition-all cursor-pointer ${

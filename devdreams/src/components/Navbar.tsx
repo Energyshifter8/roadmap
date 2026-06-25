@@ -84,6 +84,7 @@ export default function Navbar() {
 
         {/* Mobile hamburger */}
         <button
+          type="button"
           onClick={() => setMobileOpen(!mobileOpen)}
           className="ml-auto sm:hidden rounded-lg p-2 text-zinc-600 hover:bg-zinc-100 transition-colors"
           aria-label="Toggle menu"

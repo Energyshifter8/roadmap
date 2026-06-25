@@ -49,6 +49,7 @@ const TopicTag = memo(function TopicTag({
   return (
     <div className="relative group">
       <button
+        type="button"
         data-node-id={node.id}
         onClick={() => {
           onSelect(node);
@@ -175,6 +176,7 @@ function SectionRow({
         const cp1x = centerRight + dx * 0.4;
         const cp2x = centerRight + dx * 0.6;
         branches.push({
+          // biome-ignore lint/style/noNonNullAssertion: safe
           id: el.dataset.nodeId!,
           d: `M ${centerRight} ${centerY} C ${cp1x} ${centerY}, ${cp2x} ${topicY}, ${topicLeft} ${topicY}`,
         });
@@ -183,6 +185,7 @@ function SectionRow({
         const cp1x = centerLeft + dx * 0.4;
         const cp2x = centerLeft + dx * 0.6;
         branches.push({
+          // biome-ignore lint/style/noNonNullAssertion: safe
           id: el.dataset.nodeId!,
           d: `M ${centerLeft} ${centerY} C ${cp1x} ${centerY}, ${cp2x} ${topicY}, ${topicRight} ${topicY}`,
         });
@@ -220,6 +223,8 @@ function SectionRow({
   return (
     <div ref={containerRef} className="mb-24 relative">
       <svg
+        role="img"
+        aria-label="Roadmap Connections"
         className="absolute inset-0 w-full h-full pointer-events-none z-0"
         style={{ overflow: "visible" }}
       >
@@ -250,6 +255,7 @@ function SectionRow({
 
         <div ref={centerRef} className="relative z-10 flex justify-center">
           <button
+            type="button"
             onClick={() => onToggle(section.node.id)}
             className={`
               px-6 py-2.5
@@ -492,8 +498,8 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
                 Resources
               </h3>
               <ul className="space-y-2">
-                {selectedTopic.links.map((link, i) => (
-                  <li key={i}>
+                {selectedTopic.links.map((link) => (
+                  <li key={link.url}>
                     <a
                       href={link.url}
                       target="_blank"
