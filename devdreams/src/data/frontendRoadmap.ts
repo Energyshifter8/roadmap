@@ -7,6 +7,7 @@ export interface RoadmapNode {
   description?: string;
   parentId: string;
   side?: 'left' | 'right';
+  links?: Array<{ title: string; url: string }>;
 }
 
 export type RoadmapSection = {

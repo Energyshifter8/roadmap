@@ -1,9 +1,10 @@
 'use client';
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { useTranslations } from 'next-intl';
-import { frontendSections, type RoadmapNode, type RoadmapSection } from '@/data/frontendRoadmap';
+import { type RoadmapNode, type RoadmapSection, frontendSections } from '@/data/frontendRoadmap';
 import LocaleSwitcher from './LocaleSwitcher';
 import { useActiveTab } from './AppShell';
+import { transformGithubJSON } from '@/lib/transformToSections';
 import type { RoadmapTabId } from './RoadmapTabs';
 
 /* ------------------------------------------------------------------ */
@@ -15,41 +16,98 @@ interface BranchPath {
   d: string;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Stub data for non-frontend roadmaps                                */
-/* ------------------------------------------------------------------ */
+interface TopicDetail {
+  id: string;
+  title: string;
+  description?: string;
+  links: Array<{ title: string; url: string }>;
+}
 
 const STORAGE_KEY = 'devdreams-completed';
 
-function stubSection(id: string, titleKey: string, parentId: string, level: 'section' | 'note' = 'section'): RoadmapSection {
-  return {
-    node: { id, titleKey, level, parentId },
-    left: [],
-    right: [],
-  };
+/* ------------------------------------------------------------------ */
+/*  TopicDetailDrawer — slide-out sidebar                              */
+/* ------------------------------------------------------------------ */
+
+function TopicDetailDrawer({
+  topic,
+  onClose,
+}: {
+  topic: TopicDetail;
+  onClose: () => void;
+}) {
+  return (
+    <>
+      <div
+        className="fixed inset-0 bg-black/20 z-40"
+        onClick={onClose}
+      />
+      <div
+        className="border-l-4 border-black bg-white shadow-[-8px_0px_0px_0px_rgba(0,0,0,1)]
+          p-6 w-full md:w-[450px] h-full fixed right-0 top-0 z-50 overflow-y-auto"
+      >
+        <button
+          onClick={onClose}
+          className="
+            w-8 h-8 flex items-center justify-center
+            border-2 border-black bg-white
+            font-bold text-sm cursor-pointer
+            shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+            hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]
+            transition-all mb-6
+          "
+        >
+          X
+        </button>
+
+        <h2 className="font-extrabold text-xl uppercase tracking-wide mb-4 break-words">
+          {topic.title}
+        </h2>
+
+        {topic.description && (
+          <p className="text-zinc-600 text-sm leading-relaxed mb-6 whitespace-pre-wrap">
+            {topic.description}
+          </p>
+        )}
+
+        {topic.links.length > 0 && (
+          <div>
+            <h3 className="font-bold text-sm uppercase tracking-wide text-zinc-500 mb-3">
+              Resources
+            </h3>
+            <ul className="space-y-2">
+              {topic.links.map((link, i) => (
+                <li key={i}>
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="
+                      block px-4 py-2.5 border-2 border-black
+                      bg-[#ffd000] font-bold text-sm
+                      shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
+                      hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]
+                      hover:translate-x-0.5 hover:translate-y-0.5
+                      transition-all break-words
+                    "
+                  >
+                    {link.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {!topic.description && topic.links.length === 0 && (
+          <p className="text-zinc-400 italic text-sm">
+            No additional details available for this topic.
+          </p>
+        )}
+      </div>
+    </>
+  );
 }
-
-const backendSections: RoadmapSection[] = [
-  stubSection('backend-root', 'backend', 'root'),
-  stubSection('backend-note', 'coming-soon', 'backend-root', 'note'),
-];
-
-const devopsSections: RoadmapSection[] = [
-  stubSection('devops-root', 'devops', 'root'),
-  stubSection('devops-note', 'coming-soon', 'devops-root', 'note'),
-];
-
-const mobileSections: RoadmapSection[] = [
-  stubSection('mobile-root', 'mobile', 'root'),
-  stubSection('mobile-note', 'coming-soon', 'mobile-root', 'note'),
-];
-
-const sectionsByTab: Record<RoadmapTabId, RoadmapSection[]> = {
-  frontend: frontendSections,
-  backend: backendSections,
-  devops: devopsSections,
-  mobile: mobileSections,
-};
 
 /* ------------------------------------------------------------------ */
 /*  TopicTag — single clickable topic                                 */
@@ -59,16 +117,27 @@ interface TopicTagProps {
   node: RoadmapNode;
   done: boolean;
   onToggle: (id: string) => void;
+  onSelect: (node: RoadmapNode) => void;
+  labelMap: Record<string, string>;
 }
 
-const TopicTag = memo(function TopicTag({ node, done, onToggle }: TopicTagProps) {
-  const t = useTranslations('roadmap');
+const TopicTag = memo(function TopicTag({
+  node,
+  done,
+  onToggle,
+  onSelect,
+  labelMap,
+}: TopicTagProps) {
+  const t = (key: string) => labelMap?.[key] ?? key.replace(/-/g, ' ');
 
   return (
     <div className="relative group">
       <button
         data-node-id={node.id}
-        onClick={() => onToggle(node.id)}
+        onClick={() => {
+          onSelect(node);
+          onToggle(node.id);
+        }}
         className={`
           flex items-center gap-2 px-3 py-1.5 text-xs font-bold border-2 border-black
           rounded-md w-full text-left whitespace-normal break-words transition-all cursor-pointer
@@ -110,9 +179,17 @@ interface GroupBoxProps {
   items: RoadmapNode[];
   completed: Record<string, boolean>;
   onToggle: (id: string) => void;
+  onSelect: (node: RoadmapNode) => void;
+  labelMap: Record<string, string>;
 }
 
-const GroupBox = memo(function GroupBox({ items, completed, onToggle }: GroupBoxProps) {
+const GroupBox = memo(function GroupBox({
+  items,
+  completed,
+  onToggle,
+  onSelect,
+  labelMap,
+}: GroupBoxProps) {
   return (
     <div className="bg-white border-2 border-zinc-900 rounded-xl p-3 w-full
       shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] relative min-w-[200px]"
@@ -125,6 +202,8 @@ const GroupBox = memo(function GroupBox({ items, completed, onToggle }: GroupBox
             node={item}
             done={!!completed[item.id]}
             onToggle={onToggle}
+            onSelect={onSelect}
+            labelMap={labelMap}
           />
         ))}
       </div>
@@ -140,10 +219,12 @@ interface SectionRowProps {
   section: RoadmapSection;
   completed: Record<string, boolean>;
   onToggle: (id: string) => void;
+  onSelect: (node: RoadmapNode) => void;
+  labelMap: Record<string, string>;
 }
 
-function SectionRow({ section, completed, onToggle }: SectionRowProps) {
-  const t = useTranslations('roadmap');
+function SectionRow({ section, completed, onToggle, onSelect, labelMap }: SectionRowProps) {
+  const t = (key: string) => labelMap?.[key] ?? key.replace(/-/g, ' ');
   const containerRef = useRef<HTMLDivElement>(null);
   const centerRef = useRef<HTMLDivElement>(null);
   const [paths, setPaths] = useState<BranchPath[]>([]);
@@ -236,7 +317,13 @@ function SectionRow({ section, completed, onToggle }: SectionRowProps) {
       <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-x-24">
         <div className="flex justify-end">
           {hasLeft && (
-            <GroupBox items={section.left} completed={completed} onToggle={onToggle} />
+            <GroupBox
+              items={section.left}
+              completed={completed}
+              onToggle={onToggle}
+              onSelect={onSelect}
+              labelMap={labelMap}
+            />
           )}
         </div>
 
@@ -262,7 +349,13 @@ function SectionRow({ section, completed, onToggle }: SectionRowProps) {
 
         <div className="flex justify-start">
           {hasRight && (
-            <GroupBox items={section.right} completed={completed} onToggle={onToggle} />
+            <GroupBox
+              items={section.right}
+              completed={completed}
+              onToggle={onToggle}
+              onSelect={onSelect}
+              labelMap={labelMap}
+            />
           )}
         </div>
       </div>
@@ -271,11 +364,49 @@ function SectionRow({ section, completed, onToggle }: SectionRowProps) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  RoadmapCanvas — top-level component                                */
+/*  ComingSoonPlaceholder — shown for non-frontend roadmaps            */
 /* ------------------------------------------------------------------ */
 
-export default function RoadmapCanvas() {
-  const { activeTab } = useActiveTab();
+function ComingSoonPlaceholder({ tab }: { tab: RoadmapTabId }) {
+  const tRoadmap = useTranslations('roadmap');
+  const tTabs = useTranslations('tabs');
+
+  return (
+    <div className="min-h-screen bg-[#f8f9fa] py-16">
+      <div className="max-w-5xl mx-auto relative px-4">
+        <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-zinc-900
+          -translate-x-1/2 pointer-events-none"
+        />
+
+        <div className="flex justify-center mb-24 relative z-10">
+          <div className="bg-[#ffd000] border-2 border-zinc-900 px-10 py-3.5
+            shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+          >
+            <h1 className="font-extrabold text-lg uppercase tracking-wide text-zinc-900">
+              {tTabs(tab)}
+            </h1>
+          </div>
+        </div>
+
+        <div className="flex justify-center relative z-10">
+          <div className="bg-white border-2 border-zinc-900 rounded-xl px-10 py-6
+            shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-center max-w-md"
+          >
+            <p className="text-zinc-500 text-sm italic">{tRoadmap('coming-soon')}</p>
+          </div>
+        </div>
+      </div>
+
+      <LocaleSwitcher />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  FrontendRoadmap — fetches from API, falls back to static data      */
+/* ------------------------------------------------------------------ */
+
+function FrontendRoadmap() {
   const [completed, setCompleted] = useState<Record<string, boolean>>(() => {
     if (typeof window === 'undefined') return {};
     try {
@@ -289,20 +420,72 @@ export default function RoadmapCanvas() {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(completed));
-    } catch { /* quota exceeded, silently ignore */ }
+    } catch { /* quota exceeded */ }
   }, [completed]);
 
   const toggle = useCallback((id: string) => {
     setCompleted((prev) => ({ ...prev, [id]: !prev[id] }));
   }, []);
 
-  const tRoadmap = useTranslations('roadmap');
-  const tTabs = useTranslations('tabs');
-  const sections = sectionsByTab[activeTab];
+  const [sections, setSections] = useState<RoadmapSection[]>([]);
+  const [labelMap, setLabelMap] = useState<Record<string, string>>({});
+  const [loadingData, setLoadingData] = useState(true);
 
-  const headerTitle = activeTab === 'frontend'
-    ? tRoadmap('title')
-    : `${tTabs(activeTab)} ${tRoadmap('title').split(' ').pop() ?? ''}`;
+  const [selectedTopic, setSelectedTopic] = useState<TopicDetail | null>(null);
+
+  const labelMapRef = useRef(labelMap);
+  useEffect(() => {
+    labelMapRef.current = labelMap;
+  }, [labelMap]);
+
+  const onSelect = useCallback((node: RoadmapNode) => {
+    const title = labelMapRef.current[node.titleKey] ?? node.titleKey.replace(/-/g, ' ');
+    setSelectedTopic({
+      id: node.id,
+      title,
+      description: node.description,
+      links: node.links ?? [],
+    });
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch('/api/roadmap/frontend')
+      .then((r) => {
+        if (!r.ok) throw new Error('fetch failed');
+        return r.json();
+      })
+      .then((raw) => {
+        if (cancelled) return;
+        const { sections: s, labelMap: lm } = transformGithubJSON(raw);
+        if (s.length > 0) {
+          setSections(s);
+          setLabelMap(lm);
+        } else {
+          setSections(frontendSections);
+          setLabelMap({});
+        }
+        setLoadingData(false);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSections(frontendSections);
+          setLabelMap({});
+          setLoadingData(false);
+        }
+      });
+
+    return () => { cancelled = true; };
+  }, []);
+
+  if (loadingData) return (
+    <div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center">
+      <div className="text-zinc-400 font-mono text-sm animate-pulse">Loading roadmap...</div>
+    </div>
+  );
+
+  const headerTitle = labelMap['frontend'] ?? 'Frontend Developer';
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] py-16">
@@ -327,11 +510,34 @@ export default function RoadmapCanvas() {
             section={sec}
             completed={completed}
             onToggle={toggle}
+            onSelect={onSelect}
+            labelMap={labelMap}
           />
         ))}
       </div>
 
       <LocaleSwitcher />
+
+      {selectedTopic && (
+        <TopicDetailDrawer
+          topic={selectedTopic}
+          onClose={() => setSelectedTopic(null)}
+        />
+      )}
     </div>
   );
+}
+
+/* ------------------------------------------------------------------ */
+/*  RoadmapCanvas — top-level switch                                   */
+/* ------------------------------------------------------------------ */
+
+export default function RoadmapCanvas() {
+  const { activeTab } = useActiveTab();
+
+  if (activeTab !== 'frontend') {
+    return <ComingSoonPlaceholder tab={activeTab} />;
+  }
+
+  return <FrontendRoadmap />;
 }
