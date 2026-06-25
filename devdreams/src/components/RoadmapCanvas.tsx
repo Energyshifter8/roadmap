@@ -1,15 +1,17 @@
 'use client';
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { useTranslations } from 'next-intl';
-import { type RoadmapNode, type RoadmapSection, frontendSections } from '@/data/frontendRoadmap';
-import LocaleSwitcher from './LocaleSwitcher';
-import { useActiveTab } from './AppShell';
-import { transformGithubJSON } from '@/lib/transformToSections';
+import type { RoadmapNode, RoadmapSection } from '@/data/frontendRoadmap';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerClose,
+} from '@/components/ui/drawer';
 import type { RoadmapTabId } from './RoadmapTabs';
-
-/* ------------------------------------------------------------------ */
-/*  Types                                                             */
-/* ------------------------------------------------------------------ */
 
 interface BranchPath {
   id: string;
@@ -24,94 +26,6 @@ interface TopicDetail {
 }
 
 const STORAGE_KEY = 'devdreams-completed';
-
-/* ------------------------------------------------------------------ */
-/*  TopicDetailDrawer — slide-out sidebar                              */
-/* ------------------------------------------------------------------ */
-
-function TopicDetailDrawer({
-  topic,
-  onClose,
-}: {
-  topic: TopicDetail;
-  onClose: () => void;
-}) {
-  return (
-    <>
-      <div
-        className="fixed inset-0 bg-black/20 z-40"
-        onClick={onClose}
-      />
-      <div
-        className="border-l-4 border-black bg-white shadow-[-8px_0px_0px_0px_rgba(0,0,0,1)]
-          p-6 w-full md:w-[450px] h-full fixed right-0 top-0 z-50 overflow-y-auto"
-      >
-        <button
-          onClick={onClose}
-          className="
-            w-8 h-8 flex items-center justify-center
-            border-2 border-black bg-white
-            font-bold text-sm cursor-pointer
-            shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-            hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]
-            transition-all mb-6
-          "
-        >
-          X
-        </button>
-
-        <h2 className="font-extrabold text-xl uppercase tracking-wide mb-4 break-words">
-          {topic.title}
-        </h2>
-
-        {topic.description && (
-          <p className="text-zinc-600 text-sm leading-relaxed mb-6 whitespace-pre-wrap">
-            {topic.description}
-          </p>
-        )}
-
-        {topic.links.length > 0 && (
-          <div>
-            <h3 className="font-bold text-sm uppercase tracking-wide text-zinc-500 mb-3">
-              Resources
-            </h3>
-            <ul className="space-y-2">
-              {topic.links.map((link, i) => (
-                <li key={i}>
-                  <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="
-                      block px-4 py-2.5 border-2 border-black
-                      bg-[#ffd000] font-bold text-sm
-                      shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]
-                      hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]
-                      hover:translate-x-0.5 hover:translate-y-0.5
-                      transition-all break-words
-                    "
-                  >
-                    {link.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {!topic.description && topic.links.length === 0 && (
-          <p className="text-zinc-400 italic text-sm">
-            No additional details available for this topic.
-          </p>
-        )}
-      </div>
-    </>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  TopicTag — single clickable topic                                 */
-/* ------------------------------------------------------------------ */
 
 interface TopicTagProps {
   node: RoadmapNode;
@@ -171,10 +85,6 @@ const TopicTag = memo(function TopicTag({
   );
 });
 
-/* ------------------------------------------------------------------ */
-/*  GroupBox — vertical list of topics with left accent               */
-/* ------------------------------------------------------------------ */
-
 interface GroupBoxProps {
   items: RoadmapNode[];
   completed: Record<string, boolean>;
@@ -210,10 +120,6 @@ const GroupBox = memo(function GroupBox({
     </div>
   );
 });
-
-/* ------------------------------------------------------------------ */
-/*  SectionRow — one row of the roadmap (center + optional left/right) */
-/* ------------------------------------------------------------------ */
 
 interface SectionRowProps {
   section: RoadmapSection;
@@ -363,10 +269,6 @@ function SectionRow({ section, completed, onToggle, onSelect, labelMap }: Sectio
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  ComingSoonPlaceholder — shown for non-frontend roadmaps            */
-/* ------------------------------------------------------------------ */
-
 function ComingSoonPlaceholder({ tab }: { tab: RoadmapTabId }) {
   const tRoadmap = useTranslations('roadmap');
   const tTabs = useTranslations('tabs');
@@ -396,17 +298,11 @@ function ComingSoonPlaceholder({ tab }: { tab: RoadmapTabId }) {
           </div>
         </div>
       </div>
-
-      <LocaleSwitcher />
     </div>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  FrontendRoadmap — fetches from API, falls back to static data      */
-/* ------------------------------------------------------------------ */
-
-function FrontendRoadmap() {
+function RoadmapContent({ type }: { type: RoadmapTabId }) {
   const [completed, setCompleted] = useState<Record<string, boolean>>(() => {
     if (typeof window === 'undefined') return {};
     try {
@@ -451,33 +347,25 @@ function FrontendRoadmap() {
   useEffect(() => {
     let cancelled = false;
 
-    fetch('/api/roadmap/frontend')
+    fetch(`/api/roadmap/${type}`)
       .then((r) => {
         if (!r.ok) throw new Error('fetch failed');
-        return r.json();
+        return r.json() as Promise<{ sections: RoadmapSection[]; labelMap: Record<string, string> }>;
       })
-      .then((raw) => {
+      .then((data) => {
         if (cancelled) return;
-        const { sections: s, labelMap: lm } = transformGithubJSON(raw);
-        if (s.length > 0) {
-          setSections(s);
-          setLabelMap(lm);
-        } else {
-          setSections(frontendSections);
-          setLabelMap({});
+        if (data.sections.length > 0) {
+          setSections(data.sections);
+          setLabelMap(data.labelMap);
         }
         setLoadingData(false);
       })
       .catch(() => {
-        if (!cancelled) {
-          setSections(frontendSections);
-          setLabelMap({});
-          setLoadingData(false);
-        }
+        if (!cancelled) setLoadingData(false);
       });
 
     return () => { cancelled = true; };
-  }, []);
+  }, [type]);
 
   if (loadingData) return (
     <div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center">
@@ -485,7 +373,7 @@ function FrontendRoadmap() {
     </div>
   );
 
-  const headerTitle = labelMap['frontend'] ?? 'Frontend Developer';
+  const headerTitle = labelMap[type] ?? type.charAt(0).toUpperCase() + type.slice(1) + ' Developer';
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] py-16">
@@ -516,28 +404,75 @@ function FrontendRoadmap() {
         ))}
       </div>
 
-      <LocaleSwitcher />
+      <Drawer
+        open={selectedTopic !== null}
+        onOpenChange={(open) => !open && setSelectedTopic(null)}
+      >
+        <DrawerContent
+          className="border-t-4 border-black bg-white shadow-[0_-8px_0_0_rgba(0,0,0,1)]"
+        >
+          <DrawerHeader>
+            <DrawerTitle className="font-extrabold text-xl uppercase tracking-wide">
+              {selectedTopic?.title}
+            </DrawerTitle>
+            {selectedTopic?.description && (
+              <DrawerDescription className="text-zinc-600 text-sm leading-relaxed whitespace-pre-wrap">
+                {selectedTopic.description}
+              </DrawerDescription>
+            )}
+          </DrawerHeader>
 
-      {selectedTopic && (
-        <TopicDetailDrawer
-          topic={selectedTopic}
-          onClose={() => setSelectedTopic(null)}
-        />
-      )}
+          {selectedTopic?.links && selectedTopic.links.length > 0 && (
+            <div className="px-4 pb-4">
+              <h3 className="font-bold text-sm uppercase tracking-wide text-zinc-500 mb-3">
+                Resources
+              </h3>
+              <ul className="space-y-2">
+                {selectedTopic.links.map((link, i) => (
+                  <li key={i}>
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block px-4 py-2.5 border-2 border-black bg-[#ffd000] font-bold text-sm shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all break-words"
+                    >
+                      {link.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {(!selectedTopic?.description && (!selectedTopic?.links || selectedTopic.links.length === 0)) && (
+            <div className="px-4 pb-4">
+              <p className="text-zinc-400 italic text-sm">
+                No additional details available for this topic.
+              </p>
+            </div>
+          )}
+
+          <DrawerFooter>
+            <DrawerClose
+              className="w-full border-2 border-black bg-white font-bold text-sm py-2.5 cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all"
+            >
+              Close
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  RoadmapCanvas — top-level switch                                   */
-/* ------------------------------------------------------------------ */
+interface RoadmapCanvasProps {
+  activeTab: RoadmapTabId;
+}
 
-export default function RoadmapCanvas() {
-  const { activeTab } = useActiveTab();
-
+export default function RoadmapCanvas({ activeTab }: RoadmapCanvasProps) {
   if (activeTab !== 'frontend') {
     return <ComingSoonPlaceholder tab={activeTab} />;
   }
 
-  return <FrontendRoadmap />;
+  return <RoadmapContent type={activeTab} />;
 }

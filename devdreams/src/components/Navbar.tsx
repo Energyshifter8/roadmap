@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { BookOpen, Menu, X } from 'lucide-react';
 import type { RoadmapTabId } from './RoadmapTabs';
@@ -9,14 +10,14 @@ import LocaleSwitcher from './LocaleSwitcher';
 
 const TAB_IDS: RoadmapTabId[] = ['frontend', 'backend', 'devops', 'mobile'];
 
-interface NavbarProps {
-  activeTab: RoadmapTabId;
-  onTabChange: (tab: RoadmapTabId) => void;
-}
-
-export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
+export default function Navbar() {
   const t = useTranslations('tabs');
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const activeTab: RoadmapTabId = TAB_IDS.find(
+    (id) => pathname === `/roadmap/${id}`
+  ) ?? 'frontend';
 
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-zinc-200">
@@ -26,9 +27,9 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
           {TAB_IDS.slice(0, 2).map((id) => {
             const isActive = id === activeTab;
             return (
-              <button
+              <Link
                 key={id}
-                onClick={() => onTabChange(id)}
+                href={`/roadmap/${id}`}
                 className={`
                   border-2 border-zinc-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
                   font-bold rounded-xl px-5 py-2 transition-all text-sm
@@ -40,7 +41,7 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
                 `}
               >
                 {t(id)}
-              </button>
+              </Link>
             );
           })}
         </div>
@@ -58,9 +59,9 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
           {TAB_IDS.slice(2).map((id) => {
             const isActive = id === activeTab;
             return (
-              <button
+              <Link
                 key={id}
-                onClick={() => onTabChange(id)}
+                href={`/roadmap/${id}`}
                 className={`
                   border-2 border-zinc-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
                   font-bold rounded-xl px-5 py-2 transition-all text-sm
@@ -72,7 +73,7 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
                 `}
               >
                 {t(id)}
-              </button>
+              </Link>
             );
           })}
         </div>
@@ -93,14 +94,12 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
           {TAB_IDS.map((id) => {
             const isActive = id === activeTab;
             return (
-              <button
+              <Link
                 key={id}
-                onClick={() => {
-                  onTabChange(id);
-                  setMobileOpen(false);
-                }}
+                href={`/roadmap/${id}`}
+                onClick={() => setMobileOpen(false)}
                 className={`
-                  w-full text-left border-2 border-zinc-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
+                  block w-full text-left border-2 border-zinc-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
                   font-bold rounded-xl px-5 py-2.5 transition-all text-sm mb-2
                   ${isActive
                     ? 'bg-[#ffd000] text-zinc-900'
@@ -109,7 +108,7 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
                 `}
               >
                 {t(id)}
-              </button>
+              </Link>
             );
           })}
         </div>

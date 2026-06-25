@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { transformGithubJSON } from '@/lib/transformToSections';
+import { frontendSections } from '@/data/frontendRoadmap';
 
 const URLS: Record<string, string> = {
   frontend: 'https://raw.githubusercontent.com/nilbuild/developer-roadmap/master/src/data/roadmaps/frontend/frontend.json',
@@ -7,18 +9,11 @@ const URLS: Record<string, string> = {
   mobile:   'https://raw.githubusercontent.com/nilbuild/developer-roadmap/master/src/data/roadmaps/android/android.json',
 };
 
-function fallbackJSON() {
-  return {
-    nodes: [
-      { id: 'fb-1', type: 'topic', position: { x: 0, y: 0 }, data: { label: 'Roadmap Unavailable' } },
-      { id: 'fb-2', type: 'subtopic', position: { x: -200, y: 150 }, data: { label: 'Could not load roadmap data from GitHub.' } },
-      { id: 'fb-3', type: 'subtopic', position: { x: 200, y: 150 }, data: { label: 'Showing fallback — check your connection.' } },
-    ],
-    edges: [
-      { source: 'fb-1', target: 'fb-2' },
-      { source: 'fb-1', target: 'fb-3' },
-    ],
-  };
+function fallbackResult(type: string) {
+  if (type === 'frontend') {
+    return { sections: frontendSections, labelMap: {} };
+  }
+  return { sections: [], labelMap: {} };
 }
 
 export async function GET(
@@ -30,7 +25,7 @@ export async function GET(
     const url = URLS[type];
 
     if (!url) {
-      return NextResponse.json(fallbackJSON());
+      return NextResponse.json(fallbackResult(type));
     }
 
     const res = await fetch(url, {
@@ -40,17 +35,23 @@ export async function GET(
     });
 
     if (!res.ok) {
-      return NextResponse.json(fallbackJSON());
+      return NextResponse.json(fallbackResult(type));
     }
 
     const data: unknown = await res.json();
 
     if (!data || typeof data !== 'object' || !Array.isArray((data as Record<string, unknown>).nodes)) {
-      return NextResponse.json(fallbackJSON());
+      return NextResponse.json(fallbackResult(type));
     }
 
-    return NextResponse.json(data);
+    const result = transformGithubJSON(data as Record<string, unknown>);
+
+    if (result.sections.length === 0) {
+      return NextResponse.json(fallbackResult(type));
+    }
+
+    return NextResponse.json(result);
   } catch {
-    return NextResponse.json(fallbackJSON());
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
