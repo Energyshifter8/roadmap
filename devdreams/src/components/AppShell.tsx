@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import type { ReactNode } from 'react';
-import Navbar from './Navbar';
+import type { ReactNode } from "react";
+import Navbar from "./Navbar";
 
 export default function AppShell({ children }: { children: ReactNode }) {
   return (

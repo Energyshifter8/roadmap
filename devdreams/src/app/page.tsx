@@ -1,10 +1,30 @@
-import Link from 'next/link';
+import Link from "next/link";
 
 const roadmaps = [
-  { id: 'frontend', label: 'Frontend', href: '/roadmap/frontend', bg: 'bg-[#ffd000]' },
-  { id: 'backend', label: 'Backend', href: '/roadmap/backend', bg: 'bg-[#39ff14]' },
-  { id: 'devops', label: 'DevOps', href: '/roadmap/devops', bg: 'bg-[#00e5ff]' },
-  { id: 'mobile', label: 'Mobile', href: '/roadmap/mobile', bg: 'bg-[#ff6b6b]' },
+  {
+    id: "frontend",
+    label: "Frontend",
+    href: "/roadmap/frontend",
+    bg: "bg-[#ffd000]",
+  },
+  {
+    id: "backend",
+    label: "Backend",
+    href: "/roadmap/backend",
+    bg: "bg-[#39ff14]",
+  },
+  {
+    id: "devops",
+    label: "DevOps",
+    href: "/roadmap/devops",
+    bg: "bg-[#00e5ff]",
+  },
+  {
+    id: "mobile",
+    label: "Mobile",
+    href: "/roadmap/mobile",
+    bg: "bg-[#ff6b6b]",
+  },
 ];
 
 export default function Home() {
@@ -16,7 +36,8 @@ export default function Home() {
         </h1>
 
         <p className="text-zinc-600 text-lg mb-12 max-w-2xl">
-          Choose your path and start mastering the skills you need to become a world-class developer.
+          Choose your path and start mastering the skills you need to become a
+          world-class developer.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

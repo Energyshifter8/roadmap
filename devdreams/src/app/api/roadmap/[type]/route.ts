@@ -1,16 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { transformGithubJSON } from '@/lib/transformToSections';
-import { frontendSections } from '@/data/frontendRoadmap';
+import { type NextRequest, NextResponse } from "next/server";
+import { frontendSections } from "@/data/frontendRoadmap";
+import { transformGithubJSON } from "@/lib/transformToSections";
 
 const URLS: Record<string, string> = {
-  frontend: 'https://raw.githubusercontent.com/nilbuild/developer-roadmap/master/src/data/roadmaps/frontend/frontend.json',
-  backend:  'https://raw.githubusercontent.com/nilbuild/developer-roadmap/master/src/data/roadmaps/backend/backend.json',
-  devops:   'https://raw.githubusercontent.com/nilbuild/developer-roadmap/master/src/data/roadmaps/devops/devops.json',
-  mobile:   'https://raw.githubusercontent.com/nilbuild/developer-roadmap/master/src/data/roadmaps/android/android.json',
+  frontend:
+    "https://raw.githubusercontent.com/nilbuild/developer-roadmap/master/src/data/roadmaps/frontend/frontend.json",
+  backend:
+    "https://raw.githubusercontent.com/nilbuild/developer-roadmap/master/src/data/roadmaps/backend/backend.json",
+  devops:
+    "https://raw.githubusercontent.com/nilbuild/developer-roadmap/master/src/data/roadmaps/devops/devops.json",
+  mobile:
+    "https://raw.githubusercontent.com/nilbuild/developer-roadmap/master/src/data/roadmaps/android/android.json",
 };
 
 function fallbackResult(type: string) {
-  if (type === 'frontend') {
+  if (type === "frontend") {
     return { sections: frontendSections, labelMap: {} };
   }
   return { sections: [], labelMap: {} };
@@ -18,7 +22,7 @@ function fallbackResult(type: string) {
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<{ type: string }> }
+  { params }: { params: Promise<{ type: string }> },
 ) {
   try {
     const { type } = await params;
@@ -30,7 +34,7 @@ export async function GET(
 
     const res = await fetch(url, {
       next: { revalidate: 3600 },
-      headers: { Accept: 'application/json' },
+      headers: { Accept: "application/json" },
       signal: AbortSignal.timeout(10_000),
     });
 
@@ -40,7 +44,11 @@ export async function GET(
 
     const data: unknown = await res.json();
 
-    if (!data || typeof data !== 'object' || !Array.isArray((data as Record<string, unknown>).nodes)) {
+    if (
+      !data ||
+      typeof data !== "object" ||
+      !Array.isArray((data as Record<string, unknown>).nodes)
+    ) {
       return NextResponse.json(fallbackResult(type));
     }
 
@@ -52,6 +60,9 @@ export async function GET(
 
     return NextResponse.json(result);
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

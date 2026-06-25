@@ -1,22 +1,29 @@
-import type { RoadmapNode, RoadmapSection, NodeLevel } from '@/data/frontendRoadmap';
+import type {
+  NodeLevel,
+  RoadmapNode,
+  RoadmapSection,
+} from "@/data/frontendRoadmap";
 
 type JsonNode = Record<string, unknown>;
 
-const NIL = '';
+const NIL = "";
 
 function toKey(label: string): string {
   return label
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
     .slice(0, 60);
 }
 
 function mapLevel(type: string): NodeLevel {
   switch (type?.toLowerCase()) {
-    case 'subtopic': return 'topic';
-    case 'link':     return 'optional';
-    default:         return 'topic';
+    case "subtopic":
+      return "topic";
+    case "link":
+      return "optional";
+    default:
+      return "topic";
   }
 }
 
@@ -39,8 +46,8 @@ function getType(n: JsonNode): string {
 function getPos(n: JsonNode): { x: number; y: number } {
   const p = n.position as JsonNode | undefined;
   return {
-    x: typeof p?.x === 'number' ? (p.x as number) : 0,
-    y: typeof p?.y === 'number' ? (p.y as number) : 0,
+    x: typeof p?.x === "number" ? (p.x as number) : 0,
+    y: typeof p?.y === "number" ? (p.y as number) : 0,
   };
 }
 
@@ -59,7 +66,7 @@ function extractDescription(n: JsonNode): string | undefined {
   candidates.push(n.description, n.content);
 
   for (const c of candidates) {
-    if (typeof c === 'string' && c.trim().length > 0) {
+    if (typeof c === "string" && c.trim().length > 0) {
       return c.trim();
     }
   }
@@ -80,10 +87,10 @@ function extractLinks(n: JsonNode): Array<{ title: string; url: string }> {
   for (const raw of candidates) {
     if (!Array.isArray(raw)) continue;
     for (const item of raw) {
-      if (!item || typeof item !== 'object') continue;
+      if (!item || typeof item !== "object") continue;
       const obj = item as Record<string, unknown>;
-      const title = String(obj.title ?? obj.label ?? '');
-      const url = String(obj.url ?? '');
+      const title = String(obj.title ?? obj.label ?? "");
+      const url = String(obj.url ?? "");
       if (title && url) {
         out.push({ title, url });
       }
@@ -96,7 +103,7 @@ function extractLinks(n: JsonNode): Array<{ title: string; url: string }> {
 function makeRoadmapNode(
   n: JsonNode,
   parentId: string,
-  side: 'left' | 'right' | undefined,
+  side: "left" | "right" | undefined,
   labelMap: Record<string, string>,
 ): RoadmapNode {
   const label = getLabel(n);
@@ -120,7 +127,7 @@ function buildChildrenOf(edges: JsonNode[]): Map<string, string[]> {
     const tgt = String(e.target ?? NIL);
     if (!src || !tgt) continue;
     if (!m.has(src)) m.set(src, []);
-    m.get(src)!.push(tgt);
+    m.get(src)?.push(tgt);
   }
   return m;
 }
@@ -147,11 +154,11 @@ export function transformGithubJSON(raw: JsonNode): TransformResult {
   //     as the spine. Frontend uses `topic` as the spine.
   //     `group` and `linksgroup` are edge‑case containers.
 
-  const hasSection = rawNodes.some((n) => getType(n) === 'section');
-  const hasGroup   = rawNodes.some((n) => getType(n) === 'group');
-  const spineType  = hasSection || hasGroup ? 'section' : 'topic';
+  const hasSection = rawNodes.some((n) => getType(n) === "section");
+  const hasGroup = rawNodes.some((n) => getType(n) === "group");
+  const spineType = hasSection || hasGroup ? "section" : "topic";
 
-  const isSectionSpine = spineType === 'section';
+  const isSectionSpine = spineType === "section";
 
   // ── 3. Order the spine ─────────────────────────────────────────────
   //     For section‑based data we sort by Y; for topic‑based we follow
@@ -161,14 +168,14 @@ export function transformGithubJSON(raw: JsonNode): TransformResult {
 
   if (isSectionSpine) {
     // Collect all section-like nodes; also include `group` & `linksgroup`
-    const sectionLike = new Set(['section', 'group', 'linksgroup']);
+    const sectionLike = new Set(["section", "group", "linksgroup"]);
     spineNodes = rawNodes
       .filter((n) => sectionLike.has(getType(n)))
       .sort((a, b) => getPos(a).y - getPos(b).y);
   } else {
     // Topic‑based spine — walk the topic→topic edge chain
     const topicIds = new Set(
-      rawNodes.filter((n) => getType(n) === 'topic').map(strId),
+      rawNodes.filter((n) => getType(n) === "topic").map(strId),
     );
     const directParent = new Map<string, string>();
     for (const e of rawEdges) {
@@ -179,7 +186,7 @@ export function transformGithubJSON(raw: JsonNode): TransformResult {
 
     const spineRoots = rawNodes
       .filter((n) => {
-        if (getType(n) !== 'topic') return false;
+        if (getType(n) !== "topic") return false;
         const pid = directParent.get(strId(n));
         return !pid || !topicIds.has(pid);
       })
@@ -195,7 +202,7 @@ export function transformGithubJSON(raw: JsonNode): TransformResult {
       if (n) ordered.push(n);
       const kids = (childrenOf.get(nodeId) ?? [])
         .map((id) => nodeById.get(id))
-        .filter((k): k is JsonNode => k != null && getType(k) === 'topic')
+        .filter((k): k is JsonNode => k != null && getType(k) === "topic")
         .sort((a, b) => getPos(a).y - getPos(b).y);
       for (const k of kids) walk(strId(k));
     }
@@ -209,25 +216,25 @@ export function transformGithubJSON(raw: JsonNode): TransformResult {
   //     Topic‑based:   children are subtopic nodes only
 
   const childTypes = new Set(
-    isSectionSpine ? ['topic', 'subtopic'] : ['subtopic'],
+    isSectionSpine ? ["topic", "subtopic"] : ["subtopic"],
   );
 
   // ── 5. Build sections ─────────────────────────────────────────────
 
   const sections: RoadmapSection[] = spineNodes.map((sec) => {
-    const secId  = strId(sec);
-    const secX   = getPos(sec).x;
+    const secId = strId(sec);
+    const secX = getPos(sec).x;
     const secLabel = getLabel(sec);
-    const secKey   = toKey(secLabel);
+    const secKey = toKey(secLabel);
     labelMap[secKey] = secLabel;
 
     const sectionNode: RoadmapNode = {
-      id:           secId,
-      titleKey:     secKey,
-      level:        'section',
-      parentId:     'root',
-      description:  extractDescription(sec),
-      links:        extractLinks(sec),
+      id: secId,
+      titleKey: secKey,
+      level: "section",
+      parentId: "root",
+      description: extractDescription(sec),
+      links: extractLinks(sec),
     };
 
     // Section-based roadmaps store children via edges TO the section
@@ -268,13 +275,13 @@ export function transformGithubJSON(raw: JsonNode): TransformResult {
       return getPos(a).x - getPos(b).x;
     });
 
-    const left: RoadmapNode[]  = [];
+    const left: RoadmapNode[] = [];
     const right: RoadmapNode[] = [];
 
     for (const k of unique) {
-      const side: 'left' | 'right' = getPos(k).x < secX ? 'left' : 'right';
+      const side: "left" | "right" = getPos(k).x < secX ? "left" : "right";
       const rn = makeRoadmapNode(k, secId, side, labelMap);
-      (side === 'left' ? left : right).push(rn);
+      (side === "left" ? left : right).push(rn);
     }
 
     return { node: sectionNode, left, right };

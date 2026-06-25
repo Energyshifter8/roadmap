@@ -1,19 +1,19 @@
-'use client';
-import { useState, useEffect, useRef, useCallback, memo } from 'react';
-import { useTranslations } from 'next-intl';
-import type { RoadmapNode, RoadmapSection } from '@/data/frontendRoadmap';
+"use client";
+import { doc, getDoc } from "firebase/firestore";
+import { useTranslations } from "next-intl";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import {
   Drawer,
+  DrawerClose,
   DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
   DrawerDescription,
   DrawerFooter,
-  DrawerClose,
-} from '@/components/ui/drawer';
-import type { RoadmapTabId } from './RoadmapTabs';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import type { RoadmapNode, RoadmapSection } from "@/data/frontendRoadmap";
+import { db } from "@/lib/firebase";
+import type { RoadmapTabId } from "./RoadmapTabs";
 
 interface BranchPath {
   id: string;
@@ -27,7 +27,7 @@ interface TopicDetail {
   links: Array<{ title: string; url: string }>;
 }
 
-const STORAGE_KEY = 'devdreams-completed';
+const STORAGE_KEY = "devdreams-completed";
 
 interface TopicTagProps {
   node: RoadmapNode;
@@ -44,7 +44,7 @@ const TopicTag = memo(function TopicTag({
   onSelect,
   labelMap,
 }: TopicTagProps) {
-  const t = (key: string) => labelMap?.[key] ?? key.replace(/-/g, ' ');
+  const t = (key: string) => labelMap?.[key] ?? key.replace(/-/g, " ");
 
   return (
     <div className="relative group">
@@ -57,24 +57,30 @@ const TopicTag = memo(function TopicTag({
         className={`
           flex items-center gap-2 px-3 py-1.5 text-xs font-bold border-2 border-black
           rounded-md w-full text-left whitespace-normal break-words transition-all cursor-pointer
-          ${done
-            ? 'bg-[#f3e8ff] text-black'
-            : 'bg-[#f1f3f5] text-zinc-700 hover:bg-[#e9ecef]'
+          ${
+            done
+              ? "bg-[#f3e8ff] text-black"
+              : "bg-[#f1f3f5] text-zinc-700 hover:bg-[#e9ecef]"
           }
         `}
       >
         {done ? (
-          <span className="text-purple-600 font-bold text-sm leading-none shrink-0">✓</span>
-        ) : node.level === 'recommended' ? (
+          <span className="text-purple-600 font-bold text-sm leading-none shrink-0">
+            ✓
+          </span>
+        ) : node.level === "recommended" ? (
           <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
-        ) : node.level === 'optional' ? (
+        ) : node.level === "optional" ? (
           <span className="w-2 h-2 rounded-full border-2 border-zinc-400 shrink-0" />
         ) : null}
-        <span className="whitespace-normal break-words">{t(node.titleKey)}</span>
+        <span className="whitespace-normal break-words">
+          {t(node.titleKey)}
+        </span>
       </button>
 
       {node.description && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2
+        <div
+          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2
           bg-zinc-900 text-white text-xs rounded-lg shadow-xl
           whitespace-pre-wrap max-w-[280px] leading-relaxed
           opacity-0 group-hover:opacity-100 transition-opacity
@@ -103,7 +109,8 @@ const GroupBox = memo(function GroupBox({
   labelMap,
 }: GroupBoxProps) {
   return (
-    <div className="bg-white border-2 border-zinc-900 rounded-xl p-3 w-full
+    <div
+      className="bg-white border-2 border-zinc-900 rounded-xl p-3 w-full
       shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] relative min-w-[200px]"
     >
       <div className="absolute left-4 top-3 bottom-3 w-0.5 bg-zinc-300" />
@@ -131,8 +138,14 @@ interface SectionRowProps {
   labelMap: Record<string, string>;
 }
 
-function SectionRow({ section, completed, onToggle, onSelect, labelMap }: SectionRowProps) {
-  const t = (key: string) => labelMap?.[key] ?? key.replace(/-/g, ' ');
+function SectionRow({
+  section,
+  completed,
+  onToggle,
+  onSelect,
+  labelMap,
+}: SectionRowProps) {
+  const t = (key: string) => labelMap?.[key] ?? key.replace(/-/g, " ");
   const containerRef = useRef<HTMLDivElement>(null);
   const centerRef = useRef<HTMLDivElement>(null);
   const [paths, setPaths] = useState<BranchPath[]>([]);
@@ -151,7 +164,7 @@ function SectionRow({ section, completed, onToggle, onSelect, labelMap }: Sectio
 
     const branches: BranchPath[] = [];
 
-    c.querySelectorAll<HTMLElement>('[data-node-id]').forEach((el) => {
+    c.querySelectorAll<HTMLElement>("[data-node-id]").forEach((el) => {
       const tRect = el.getBoundingClientRect();
       const topicLeft = tRect.left - cRect.left;
       const topicRight = tRect.right - cRect.left;
@@ -183,14 +196,14 @@ function SectionRow({ section, completed, onToggle, onSelect, labelMap }: Sectio
     measure();
     const ro = new ResizeObserver(measure);
     if (containerRef.current) ro.observe(containerRef.current);
-    window.addEventListener('resize', measure);
+    window.addEventListener("resize", measure);
     return () => {
       ro.disconnect();
-      window.removeEventListener('resize', measure);
+      window.removeEventListener("resize", measure);
     };
   }, [measure]);
 
-  if (section.node.level === 'note') {
+  if (section.node.level === "note") {
     return (
       <div className="flex justify-center mb-16 relative z-10">
         <div className="text-zinc-400 italic text-sm px-4 py-2 border border-dashed border-zinc-300 rounded-lg whitespace-normal break-words">
@@ -208,7 +221,7 @@ function SectionRow({ section, completed, onToggle, onSelect, labelMap }: Sectio
     <div ref={containerRef} className="mb-24 relative">
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none z-0"
-        style={{ overflow: 'visible' }}
+        style={{ overflow: "visible" }}
       >
         {paths.map((p) => (
           <path
@@ -243,9 +256,10 @@ function SectionRow({ section, completed, onToggle, onSelect, labelMap }: Sectio
               shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
               hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
               transition-all cursor-pointer text-center border-2
-              ${done
-                ? 'bg-[#ffd000] border-zinc-900 text-zinc-900'
-                : 'bg-white border-zinc-300 text-zinc-500 hover:border-zinc-900 hover:text-zinc-900'
+              ${
+                done
+                  ? "bg-[#ffd000] border-zinc-900 text-zinc-900"
+                  : "bg-white border-zinc-300 text-zinc-500 hover:border-zinc-900 hover:text-zinc-900"
               }
             `}
           >
@@ -272,18 +286,20 @@ function SectionRow({ section, completed, onToggle, onSelect, labelMap }: Sectio
 }
 
 function ComingSoonPlaceholder({ tab }: { tab: RoadmapTabId }) {
-  const tRoadmap = useTranslations('roadmap');
-  const tTabs = useTranslations('tabs');
+  const tRoadmap = useTranslations("roadmap");
+  const tTabs = useTranslations("tabs");
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] py-16">
       <div className="max-w-5xl mx-auto relative px-4">
-        <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-zinc-900
+        <div
+          className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-zinc-900
           -translate-x-1/2 pointer-events-none"
         />
 
         <div className="flex justify-center mb-24 relative z-10">
-          <div className="bg-[#ffd000] border-2 border-zinc-900 px-10 py-3.5
+          <div
+            className="bg-[#ffd000] border-2 border-zinc-900 px-10 py-3.5
             shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
           >
             <h1 className="font-extrabold text-lg uppercase tracking-wide text-zinc-900">
@@ -293,10 +309,13 @@ function ComingSoonPlaceholder({ tab }: { tab: RoadmapTabId }) {
         </div>
 
         <div className="flex justify-center relative z-10">
-          <div className="bg-white border-2 border-zinc-900 rounded-xl px-10 py-6
+          <div
+            className="bg-white border-2 border-zinc-900 rounded-xl px-10 py-6
             shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-center max-w-md"
           >
-            <p className="text-zinc-500 text-sm italic">{tRoadmap('coming-soon')}</p>
+            <p className="text-zinc-500 text-sm italic">
+              {tRoadmap("coming-soon")}
+            </p>
           </div>
         </div>
       </div>
@@ -306,7 +325,7 @@ function ComingSoonPlaceholder({ tab }: { tab: RoadmapTabId }) {
 
 function RoadmapContent({ type }: { type: RoadmapTabId }) {
   const [completed, setCompleted] = useState<Record<string, boolean>>(() => {
-    if (typeof window === 'undefined') return {};
+    if (typeof window === "undefined") return {};
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       return raw ? JSON.parse(raw) : {};
@@ -318,7 +337,9 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(completed));
-    } catch { /* quota exceeded */ }
+    } catch {
+      /* quota exceeded */
+    }
   }, [completed]);
 
   const toggle = useCallback((id: string) => {
@@ -338,7 +359,8 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
   }, [labelMap]);
 
   const onSelect = useCallback((node: RoadmapNode) => {
-    const title = labelMapRef.current[node.titleKey] ?? node.titleKey.replace(/-/g, ' ');
+    const title =
+      labelMapRef.current[node.titleKey] ?? node.titleKey.replace(/-/g, " ");
     setSelectedTopic({
       id: node.id,
       title,
@@ -350,7 +372,7 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
   useEffect(() => {
     if (!selectedTopic) return;
     setDetailLoading(true);
-    const ref = doc(db, 'roadmap_details', selectedTopic.id.toLowerCase());
+    const ref = doc(db, "roadmap_details", selectedTopic.id.toLowerCase());
     getDoc(ref)
       .then((snap) => {
         if (snap.exists()) {
@@ -360,25 +382,32 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
               ? {
                   ...prev,
                   description: data.description ?? prev.description,
-                  links: data.resources?.map(
-                    (r: { title: string; url: string }) => ({ title: r.title, url: r.url }),
-                  ) ?? prev.links,
+                  links:
+                    data.resources?.map(
+                      (r: { title: string; url: string }) => ({
+                        title: r.title,
+                        url: r.url,
+                      }),
+                    ) ?? prev.links,
                 }
               : prev,
           );
         }
       })
-      .catch((err) => console.error('Failed to fetch roadmap details:', err))
+      .catch((err) => console.error("Failed to fetch roadmap details:", err))
       .finally(() => setDetailLoading(false));
-  }, [selectedTopic?.id]);
+  }, [selectedTopic?.id, selectedTopic]);
 
   useEffect(() => {
     let cancelled = false;
 
     fetch(`/api/roadmap/${type}`)
       .then((r) => {
-        if (!r.ok) throw new Error('fetch failed');
-        return r.json() as Promise<{ sections: RoadmapSection[]; labelMap: Record<string, string> }>;
+        if (!r.ok) throw new Error("fetch failed");
+        return r.json() as Promise<{
+          sections: RoadmapSection[];
+          labelMap: Record<string, string>;
+        }>;
       })
       .then((data) => {
         if (cancelled) return;
@@ -392,26 +421,35 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
         if (!cancelled) setLoadingData(false);
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [type]);
 
-  if (loadingData) return (
-    <div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center">
-      <div className="text-zinc-400 font-mono text-sm animate-pulse">Loading roadmap...</div>
-    </div>
-  );
+  if (loadingData)
+    return (
+      <div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center">
+        <div className="text-zinc-400 font-mono text-sm animate-pulse">
+          Loading roadmap...
+        </div>
+      </div>
+    );
 
-  const headerTitle = labelMap[type] ?? type.charAt(0).toUpperCase() + type.slice(1) + ' Developer';
+  const headerTitle =
+    labelMap[type] ??
+    `${type.charAt(0).toUpperCase() + type.slice(1)} Developer`;
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] py-16">
       <div className="max-w-5xl mx-auto relative px-4">
-        <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-zinc-900
+        <div
+          className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-zinc-900
           -translate-x-1/2 pointer-events-none"
         />
 
         <div className="flex justify-center mb-24 relative z-10">
-          <div className="bg-[#ffd000] border-2 border-zinc-900 px-10 py-3.5
+          <div
+            className="bg-[#ffd000] border-2 border-zinc-900 px-10 py-3.5
             shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
           >
             <h1 className="font-extrabold text-lg uppercase tracking-wide text-zinc-900">
@@ -436,9 +474,7 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
         open={selectedTopic !== null}
         onOpenChange={(open) => !open && setSelectedTopic(null)}
       >
-        <DrawerContent
-          className="border-t-4 border-black bg-white shadow-[0_-8px_0_0_rgba(0,0,0,1)]"
-        >
+        <DrawerContent className="border-t-4 border-black bg-white shadow-[0_-8px_0_0_rgba(0,0,0,1)]">
           <DrawerHeader>
             <DrawerTitle className="font-extrabold text-xl uppercase tracking-wide">
               {selectedTopic?.title}
@@ -476,18 +512,19 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
             <div className="px-4 pb-4">
               <p className="text-zinc-400 italic text-sm">Loading details...</p>
             </div>
-          ) : (!selectedTopic?.description && (!selectedTopic?.links || selectedTopic.links.length === 0)) && (
-            <div className="px-4 pb-4">
-              <p className="text-zinc-400 italic text-sm">
-                No additional details available for this topic.
-              </p>
-            </div>
+          ) : (
+            !selectedTopic?.description &&
+            (!selectedTopic?.links || selectedTopic.links.length === 0) && (
+              <div className="px-4 pb-4">
+                <p className="text-zinc-400 italic text-sm">
+                  No additional details available for this topic.
+                </p>
+              </div>
+            )
           )}
 
           <DrawerFooter>
-            <DrawerClose
-              className="w-full border-2 border-black bg-white font-bold text-sm py-2.5 cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all"
-            >
+            <DrawerClose className="w-full border-2 border-black bg-white font-bold text-sm py-2.5 cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all">
               Close
             </DrawerClose>
           </DrawerFooter>
@@ -502,7 +539,7 @@ interface RoadmapCanvasProps {
 }
 
 export default function RoadmapCanvas({ activeTab }: RoadmapCanvasProps) {
-  if (activeTab !== 'frontend') {
+  if (activeTab !== "frontend") {
     return <ComingSoonPlaceholder tab={activeTab} />;
   }
 
