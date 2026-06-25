@@ -8,6 +8,10 @@
   },
   "roadmap": {
     "title": "Frontend Developer",
+    "backend": "Backend Developer",
+    "devops": "DevOps Engineer",
+    "mobile": "Mobile Developer",
+    "coming-soon": "Coming Soon",
     "internet": "Internet",
     "how-internet": "How does the internet work?",
     "what-http": "What is HTTP?",

@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { useTranslations } from 'next-intl';
-import { frontendSections, type RoadmapNode } from '@/data/frontendRoadmap';
+import { frontendSections, type RoadmapNode, type RoadmapSection } from '@/data/frontendRoadmap';
 import LocaleSwitcher from './LocaleSwitcher';
 import { useActiveTab } from './AppShell';
 import type { RoadmapTabId } from './RoadmapTabs';
@@ -14,6 +14,42 @@ interface BranchPath {
   id: string;
   d: string;
 }
+
+/* ------------------------------------------------------------------ */
+/*  Stub data for non-frontend roadmaps                                */
+/* ------------------------------------------------------------------ */
+
+const STORAGE_KEY = 'devdreams-completed';
+
+function stubSection(id: string, titleKey: string, parentId: string, level: 'section' | 'note' = 'section'): RoadmapSection {
+  return {
+    node: { id, titleKey, level, parentId },
+    left: [],
+    right: [],
+  };
+}
+
+const backendSections: RoadmapSection[] = [
+  stubSection('backend-root', 'backend', 'root'),
+  stubSection('backend-note', 'coming-soon', 'backend-root', 'note'),
+];
+
+const devopsSections: RoadmapSection[] = [
+  stubSection('devops-root', 'devops', 'root'),
+  stubSection('devops-note', 'coming-soon', 'devops-root', 'note'),
+];
+
+const mobileSections: RoadmapSection[] = [
+  stubSection('mobile-root', 'mobile', 'root'),
+  stubSection('mobile-note', 'coming-soon', 'mobile-root', 'note'),
+];
+
+const sectionsByTab: Record<RoadmapTabId, RoadmapSection[]> = {
+  frontend: frontendSections,
+  backend: backendSections,
+  devops: devopsSections,
+  mobile: mobileSections,
+};
 
 /* ------------------------------------------------------------------ */
 /*  TopicTag — single clickable topic                                 */
@@ -52,7 +88,6 @@ const TopicTag = memo(function TopicTag({ node, done, onToggle }: TopicTagProps)
         <span className="whitespace-normal break-words">{t(node.titleKey)}</span>
       </button>
 
-      {/* Description tooltip */}
       {node.description && (
         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2
           bg-zinc-900 text-white text-xs rounded-lg shadow-xl
@@ -68,7 +103,7 @@ const TopicTag = memo(function TopicTag({ node, done, onToggle }: TopicTagProps)
 });
 
 /* ------------------------------------------------------------------ */
-/*  GroupBox — vertical list of topics with left accent                */
+/*  GroupBox — vertical list of topics with left accent               */
 /* ------------------------------------------------------------------ */
 
 interface GroupBoxProps {
@@ -102,7 +137,7 @@ const GroupBox = memo(function GroupBox({ items, completed, onToggle }: GroupBox
 /* ------------------------------------------------------------------ */
 
 interface SectionRowProps {
-  section: typeof frontendSections[number];
+  section: RoadmapSection;
   completed: Record<string, boolean>;
   onToggle: (id: string) => void;
 }
@@ -113,7 +148,6 @@ function SectionRow({ section, completed, onToggle }: SectionRowProps) {
   const centerRef = useRef<HTMLDivElement>(null);
   const [paths, setPaths] = useState<BranchPath[]>([]);
 
-  /* Measure every topic button and draw branching SVG paths */
   const measure = useCallback(() => {
     const c = containerRef.current;
     const btn = centerRef.current;
@@ -135,7 +169,6 @@ function SectionRow({ section, completed, onToggle }: SectionRowProps) {
       const topicY = tRect.top + tRect.height / 2 - cRect.top;
 
       if (topicLeft > btnRect.right - cRect.left) {
-        /* Topic is to the right of center — smooth S-curve */
         const dx = topicLeft - centerRight;
         const cp1x = centerRight + dx * 0.4;
         const cp2x = centerRight + dx * 0.6;
@@ -144,7 +177,6 @@ function SectionRow({ section, completed, onToggle }: SectionRowProps) {
           d: `M ${centerRight} ${centerY} C ${cp1x} ${centerY}, ${cp2x} ${topicY}, ${topicLeft} ${topicY}`,
         });
       } else if (topicRight < btnRect.left - cRect.left) {
-        /* Topic is to the left of center — smooth S-curve */
         const dx = topicRight - centerLeft;
         const cp1x = centerLeft + dx * 0.4;
         const cp2x = centerLeft + dx * 0.6;
@@ -169,7 +201,6 @@ function SectionRow({ section, completed, onToggle }: SectionRowProps) {
     };
   }, [measure]);
 
-  /* ---- Note row ---- */
   if (section.node.level === 'note') {
     return (
       <div className="flex justify-center mb-16 relative z-10">
@@ -186,7 +217,6 @@ function SectionRow({ section, completed, onToggle }: SectionRowProps) {
 
   return (
     <div ref={containerRef} className="mb-24 relative">
-      {/* SVG branching connector overlay */}
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none z-0"
         style={{ overflow: 'visible' }}
@@ -203,16 +233,13 @@ function SectionRow({ section, completed, onToggle }: SectionRowProps) {
         ))}
       </svg>
 
-      {/* 3-column grid */}
       <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-x-24">
-        {/* Left column */}
         <div className="flex justify-end">
           {hasLeft && (
             <GroupBox items={section.left} completed={completed} onToggle={onToggle} />
           )}
         </div>
 
-        {/* Center column */}
         <div ref={centerRef} className="relative z-10 flex justify-center">
           <button
             onClick={() => onToggle(section.node.id)}
@@ -233,7 +260,6 @@ function SectionRow({ section, completed, onToggle }: SectionRowProps) {
           </button>
         </div>
 
-        {/* Right column */}
         <div className="flex justify-start">
           {hasRight && (
             <GroupBox items={section.right} completed={completed} onToggle={onToggle} />
@@ -248,57 +274,54 @@ function SectionRow({ section, completed, onToggle }: SectionRowProps) {
 /*  RoadmapCanvas — top-level component                                */
 /* ------------------------------------------------------------------ */
 
-const STORAGE_KEY = 'devdreams-completed';
-
 export default function RoadmapCanvas() {
   const { activeTab } = useActiveTab();
-  const [completed, setCompleted] = useState<Record<string, boolean>>({});
-
-  /* Hydrate from localStorage after mount (client only) */
-  const [hydrated, setHydrated] = useState(false);
-  useEffect(() => {
+  const [completed, setCompleted] = useState<Record<string, boolean>>(() => {
+    if (typeof window === 'undefined') return {};
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setCompleted(JSON.parse(raw));
-    } catch { /* ignore corrupted data */ }
-    setHydrated(true);
-  }, []);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
 
-  /* Persist to localStorage on every change after hydration */
   useEffect(() => {
-    if (!hydrated) return;
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(completed));
     } catch { /* quota exceeded, silently ignore */ }
-  }, [completed, hydrated]);
+  }, [completed]);
 
   const toggle = useCallback((id: string) => {
     setCompleted((prev) => ({ ...prev, [id]: !prev[id] }));
   }, []);
 
-  const t = useTranslations('roadmap');
+  const tRoadmap = useTranslations('roadmap');
+  const tTabs = useTranslations('tabs');
+  const sections = sectionsByTab[activeTab];
+
+  const headerTitle = activeTab === 'frontend'
+    ? tRoadmap('title')
+    : `${tTabs(activeTab)} ${tRoadmap('title').split(' ').pop() ?? ''}`;
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] py-16">
       <div className="max-w-5xl mx-auto relative px-4">
-        {/* Vertical spine */}
         <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-zinc-900
           -translate-x-1/2 pointer-events-none"
         />
 
-        {/* Root header */}
         <div className="flex justify-center mb-24 relative z-10">
           <div className="bg-[#ffd000] border-2 border-zinc-900 px-10 py-3.5
             shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
           >
             <h1 className="font-extrabold text-lg uppercase tracking-wide text-zinc-900">
-              {t('title')}
+              {headerTitle}
             </h1>
           </div>
         </div>
 
-        {/* Sections */}
-        {frontendSections.map((sec) => (
+        {sections.map((sec) => (
           <SectionRow
             key={sec.node.id}
             section={sec}

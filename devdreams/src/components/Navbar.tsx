@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { BookOpen, Menu, X } from 'lucide-react';
 import type { RoadmapTabId } from './RoadmapTabs';
+import LocaleSwitcher from './LocaleSwitcher';
 
 const TAB_IDS: RoadmapTabId[] = ['frontend', 'backend', 'devops', 'mobile'];
 
@@ -14,7 +16,6 @@ interface NavbarProps {
 
 export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
   const t = useTranslations('tabs');
-  const [lang, setLang] = useState<'MN' | 'EN'>('MN');
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -45,14 +46,14 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
         </div>
 
         {/* Centered logo */}
-        <a href="/" className="flex items-center justify-center gap-2 shrink-0">
+        <Link href="/" className="flex items-center justify-center gap-2 shrink-0">
           <BookOpen className="h-6 w-6 text-zinc-900" />
           <span className="text-lg font-bold tracking-tight text-zinc-900">
             devdreams
           </span>
-        </a>
+          </Link>
 
-        {/* Right tabs + lang toggle */}
+        {/* Right tabs */}
         <div className="hidden sm:flex items-center justify-end gap-2">
           {TAB_IDS.slice(2).map((id) => {
             const isActive = id === activeTab;
@@ -74,30 +75,6 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
               </button>
             );
           })}
-
-          {/* Language Toggle — Neo-brutalist */}
-          <div className="flex rounded-full border-2 border-black overflow-hidden shadow-[2px_2px_0px_0px_#000]">
-            <button
-              onClick={() => setLang('MN')}
-              className={`px-3 py-1.5 text-xs font-bold transition-colors ${
-                lang === 'MN'
-                  ? 'bg-black text-white'
-                  : 'bg-white text-zinc-400 hover:text-zinc-700'
-              }`}
-            >
-              MN
-            </button>
-            <button
-              onClick={() => setLang('EN')}
-              className={`px-3 py-1.5 text-xs font-bold transition-colors ${
-                lang === 'EN'
-                  ? 'bg-black text-white'
-                  : 'bg-white text-zinc-400 hover:text-zinc-700'
-              }`}
-            >
-              EN
-            </button>
-          </div>
         </div>
 
         {/* Mobile hamburger */}
@@ -135,32 +112,10 @@ export default function Navbar({ activeTab, onTabChange }: NavbarProps) {
               </button>
             );
           })}
-          <div className="mt-2 flex items-center gap-2 border-t border-zinc-100 pt-2">
-            <div className="flex rounded-full border-2 border-black overflow-hidden shadow-[2px_2px_0px_0px_#000]">
-              <button
-                onClick={() => setLang('MN')}
-                className={`px-3 py-1.5 text-xs font-bold transition-colors ${
-                  lang === 'MN'
-                    ? 'bg-black text-white'
-                    : 'bg-white text-zinc-400 hover:text-zinc-700'
-                }`}
-              >
-                MN
-              </button>
-              <button
-                onClick={() => setLang('EN')}
-                className={`px-3 py-1.5 text-xs font-bold transition-colors ${
-                  lang === 'EN'
-                    ? 'bg-black text-white'
-                    : 'bg-white text-zinc-400 hover:text-zinc-700'
-                }`}
-              >
-                EN
-              </button>
-            </div>
-          </div>
         </div>
       )}
+
+      <LocaleSwitcher />
     </nav>
   );
 }
