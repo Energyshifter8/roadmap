@@ -6,12 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:seed": "tsx src/scripts/seedRoadmap.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "firebase": "^12.15.0",
+    "firebase-admin": "^14.0.0",
     "geist": "^1.7.2",
     "lucide-react": "^1.21.0",
     "next": "16.2.9",
@@ -31,6 +34,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",
+    "tsx": "^4.22.4",
     "typescript": "^5"
   }
 }

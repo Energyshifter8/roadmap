@@ -12,6 +12,8 @@ import {
   DrawerClose,
 } from '@/components/ui/drawer';
 import type { RoadmapTabId } from './RoadmapTabs';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 interface BranchPath {
   id: string;
@@ -328,6 +330,7 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
   const [loadingData, setLoadingData] = useState(true);
 
   const [selectedTopic, setSelectedTopic] = useState<TopicDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   const labelMapRef = useRef(labelMap);
   useEffect(() => {
@@ -343,6 +346,31 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
       links: node.links ?? [],
     });
   }, []);
+
+  useEffect(() => {
+    if (!selectedTopic) return;
+    setDetailLoading(true);
+    const ref = doc(db, 'roadmap_details', selectedTopic.id.toLowerCase());
+    getDoc(ref)
+      .then((snap) => {
+        if (snap.exists()) {
+          const data = snap.data();
+          setSelectedTopic((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  description: data.description ?? prev.description,
+                  links: data.resources?.map(
+                    (r: { title: string; url: string }) => ({ title: r.title, url: r.url }),
+                  ) ?? prev.links,
+                }
+              : prev,
+          );
+        }
+      })
+      .catch((err) => console.error('Failed to fetch roadmap details:', err))
+      .finally(() => setDetailLoading(false));
+  }, [selectedTopic?.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -444,7 +472,11 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
             </div>
           )}
 
-          {(!selectedTopic?.description && (!selectedTopic?.links || selectedTopic.links.length === 0)) && (
+          {detailLoading ? (
+            <div className="px-4 pb-4">
+              <p className="text-zinc-400 italic text-sm">Loading details...</p>
+            </div>
+          ) : (!selectedTopic?.description && (!selectedTopic?.links || selectedTopic.links.length === 0)) && (
             <div className="px-4 pb-4">
               <p className="text-zinc-400 italic text-sm">
                 No additional details available for this topic.
