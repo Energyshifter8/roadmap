@@ -377,32 +377,43 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
 
   useEffect(() => {
     if (!selectedTopic) return;
+    const docId = selectedTopic.id.toLowerCase();
+    console.log("[RoadmapDetails] Fetching doc:", docId);
     setDetailLoading(true);
-    const ref = doc(db, "roadmap_details", selectedTopic.id.toLowerCase());
+    const ref = doc(db, "roadmap_details", docId);
     getDoc(ref)
       .then((snap) => {
+        console.log("[RoadmapDetails] snap.exists():", snap.exists());
         if (snap.exists()) {
           const data = snap.data();
-          setSelectedTopic((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  description: data.description ?? prev.description,
-                  links:
-                    data.resources?.map(
-                      (r: { title: string; url: string }) => ({
-                        title: r.title,
-                        url: r.url,
-                      }),
-                    ) ?? prev.links,
-                }
-              : prev,
-          );
+          console.log("[RoadmapDetails] raw doc data:", JSON.stringify(data, null, 2));
+          console.log("[RoadmapDetails] description:", data.description);
+          console.log("[RoadmapDetails] resources:", data.resources);
+          setSelectedTopic((prev) => {
+            console.log("[RoadmapDetails] prev state:", prev?.id, prev?.description?.slice(0, 50));
+            if (!prev) return prev;
+            const next = {
+              ...prev,
+              description: data.description ?? prev.description,
+              links:
+                data.resources?.map(
+                  (r: { title: string; url: string }) => ({
+                    title: r.title,
+                    url: r.url,
+                  }),
+                ) ?? prev.links,
+            };
+            console.log("[RoadmapDetails] next description:", next.description?.slice(0, 50));
+            return next;
+          });
         }
       })
-      .catch((err) => console.error("Failed to fetch roadmap details:", err))
-      .finally(() => setDetailLoading(false));
-  }, [selectedTopic?.id, selectedTopic]);
+      .catch((err) => console.error("[RoadmapDetails] fetch error:", err))
+      .finally(() => {
+        console.log("[RoadmapDetails] done loading");
+        setDetailLoading(false);
+      });
+  }, [selectedTopic?.id]);
 
   useEffect(() => {
     let cancelled = false;
