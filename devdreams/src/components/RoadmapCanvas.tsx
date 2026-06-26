@@ -363,10 +363,9 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
   const onSelect = useCallback((node: RoadmapNode) => {
     const title =
       labelMapRef.current[node.titleKey] ?? node.titleKey.replace(/-/g, " ");
-    const docId = node.titleKey.toLowerCase();
-    console.log("[DEBUG] node.titleKey:", node.titleKey, "| mapped id:", docId);
+    console.log("[onSelect] node.id:", node.id, "| titleKey:", node.titleKey);
     setSelectedTopic({
-      id: docId,
+      id: node.titleKey,
       title,
       description: node.description,
       links: node.links ?? [],
