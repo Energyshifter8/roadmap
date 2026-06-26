@@ -1,4 +1,8 @@
 {
+  "landing": {
+    "title": "Welcome to DevDreams",
+    "subtitle": "Choose your path and start learning the skills you need."
+  },
   "tabs": {
     "frontend": "Frontend",
     "backend": "Backend",
