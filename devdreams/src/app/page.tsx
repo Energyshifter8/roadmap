@@ -19,9 +19,7 @@ export default async function Home() {
           {t("title")}
         </h1>
 
-        <p className="text-zinc-600 text-lg mb-12 max-w-2xl">
-          {t("subtitle")}
-        </p>
+        <p className="text-zinc-600 text-lg mb-12 max-w-2xl">{t("subtitle")}</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {roadmaps.map(({ id, href, bg }) => (

@@ -58,11 +58,7 @@ const TopicTag = memo(function TopicTag({
         className={`
           flex items-center gap-2 px-3 py-1.5 text-xs font-bold border-2 border-black
           rounded-md w-full text-left whitespace-normal break-words transition-all cursor-pointer
-          ${
-            done
-              ? "bg-[#f3e8ff] text-black"
-              : "bg-[#f1f3f5] text-zinc-700 hover:bg-[#e9ecef]"
-          }
+          ${done ? "bg-[#f3e8ff] text-black" : "bg-[#f1f3f5] text-zinc-700 hover:bg-[#e9ecef]"}
         `}
       >
         {done ? (
@@ -367,8 +363,10 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
   const onSelect = useCallback((node: RoadmapNode) => {
     const title =
       labelMapRef.current[node.titleKey] ?? node.titleKey.replace(/-/g, " ");
+    const docId = node.titleKey.toLowerCase();
+    console.log("[DEBUG] node.titleKey:", node.titleKey, "| mapped id:", docId);
     setSelectedTopic({
-      id: node.id,
+      id: docId,
       title,
       description: node.description,
       links: node.links ?? [],
@@ -377,7 +375,7 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
 
   useEffect(() => {
     if (!selectedTopic) return;
-    const docId = selectedTopic.id.toLowerCase();
+    const docId = selectedTopic.id;
     console.log("[RoadmapDetails] Fetching doc:", docId);
     setDetailLoading(true);
     const ref = doc(db, "roadmap_details", docId);
@@ -386,24 +384,32 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
         console.log("[RoadmapDetails] snap.exists():", snap.exists());
         if (snap.exists()) {
           const data = snap.data();
-          console.log("[RoadmapDetails] raw doc data:", JSON.stringify(data, null, 2));
+          console.log(
+            "[RoadmapDetails] raw doc data:",
+            JSON.stringify(data, null, 2),
+          );
           console.log("[RoadmapDetails] description:", data.description);
           console.log("[RoadmapDetails] resources:", data.resources);
           setSelectedTopic((prev) => {
-            console.log("[RoadmapDetails] prev state:", prev?.id, prev?.description?.slice(0, 50));
+            console.log(
+              "[RoadmapDetails] prev state:",
+              prev?.id,
+              prev?.description?.slice(0, 50),
+            );
             if (!prev) return prev;
             const next = {
               ...prev,
               description: data.description ?? prev.description,
               links:
-                data.resources?.map(
-                  (r: { title: string; url: string }) => ({
-                    title: r.title,
-                    url: r.url,
-                  }),
-                ) ?? prev.links,
+                data.resources?.map((r: { title: string; url: string }) => ({
+                  title: r.title,
+                  url: r.url,
+                })) ?? prev.links,
             };
-            console.log("[RoadmapDetails] next description:", next.description?.slice(0, 50));
+            console.log(
+              "[RoadmapDetails] next description:",
+              next.description?.slice(0, 50),
+            );
             return next;
           });
         }
@@ -428,10 +434,10 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
       })
       .then((data) => {
         if (cancelled) return;
-        if (data.sections.length > 0) {
-          setSections(data.sections);
-          setLabelMap(data.labelMap);
-        }
+        const secs: RoadmapSection[] = data.sections ?? [];
+        const lm: Record<string, string> = data.labelMap ?? {};
+        setSections(secs);
+        setLabelMap(lm);
         setLoadingData(false);
       })
       .catch(() => {

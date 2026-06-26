@@ -45,6 +45,14 @@ interface SeedResource {
   url: string;
 }
 
+function toKey(label: string): string {
+  return label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+}
+
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
 /* ------------------------------------------------------------------ */
@@ -504,49 +512,82 @@ async function main() {
     process.exit(0);
   }
 
-  /* ---- 3. Generate documents & write to Firestore ---- */
+  /* ---- 3. Delete all existing docs ---- */
 
-  const sortedIds = [...allNodeIds].sort();
+  console.log("\n  Deleting existing roadmap_details...");
+  let deleteCount = 0;
+  const deleteBatchSize = 100;
+  while (true) {
+    const existing = await firestore
+      .collection("roadmap_details")
+      .limit(deleteBatchSize)
+      .get();
+    if (existing.empty) break;
+    const delBatch = firestore.batch();
+    for (const d of existing.docs) delBatch.delete(d.ref);
+    await delBatch.commit();
+    deleteCount += existing.size;
+    console.log(`  ✗ Deleted ${existing.size} docs (total: ${deleteCount})`);
+  }
+  console.log(`  ✓ Removed ${deleteCount} old docs\n`);
+
+  /* ---- 4. Generate documents & write to Firestore ---- */
+
+  const seenSlugs = new Set<string>();
   let success = 0;
   let failed = 0;
+  let skipped = 0;
 
   const batchSize = 50;
   const batches: string[][] = [];
+  const sortedIds = [...allNodeIds];
   for (let i = 0; i < sortedIds.length; i += batchSize) {
     batches.push(sortedIds.slice(i, i + batchSize));
   }
 
   for (const [batchIndex, batch] of batches.entries()) {
     const batchWriter = firestore.batch();
+    let batchCount = 0;
 
     for (const nodeId of batch) {
       const meta = nodeMeta.get(nodeId);
+      if (!meta) continue;
+      const slug = toKey(meta.label);
+      if (!slug || seenSlugs.has(slug)) {
+        skipped++;
+        continue;
+      }
+      seenSlugs.add(slug);
+
       const rawNode: RawNode = {
-        id: nodeId,
-        type: meta?.type,
-        data: { label: meta?.label },
+        id: slug,
+        type: meta.type,
+        data: { label: meta.label },
       };
 
       const docData = {
-        nodeId,
-        description: generateDescription(nodeId, rawNode),
-        resources: generateResources(nodeId),
+        nodeId: slug,
+        description: generateDescription(slug, rawNode),
+        resources: generateResources(slug),
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       };
 
-      const ref = firestore.doc(`roadmap_details/${nodeId}`);
+      const ref = firestore.doc(`roadmap_details/${slug}`);
       batchWriter.set(ref, docData, { merge: false });
+      batchCount++;
     }
+
+    if (batchCount === 0) continue;
 
     try {
       await batchWriter.commit();
-      success += batch.length;
+      success += batchCount;
       console.log(
-        `  ✓ Batch ${batchIndex + 1}/${batches.length} (${batch.length} docs)`,
+        `  ✓ Batch ${batchIndex + 1}/${batches.length} (${batchCount} docs)`,
       );
     } catch (err) {
-      failed += batch.length;
+      failed += batchCount;
       console.error(
         `  ✖ Batch ${batchIndex + 1}/${batches.length} failed:`,
         err,
@@ -554,14 +595,17 @@ async function main() {
     }
   }
 
+  console.log(`  ℹ Skipped ${skipped} duplicate slugs`);
+
   /* ---- 4. Summary ---- */
 
   console.log("\n========================================");
   console.log("  Seed Summary");
   console.log("========================================");
-  console.log(`  Total nodes:    ${sortedIds.length}`);
+  console.log(`  Total nodes (before dedup): ${sortedIds.length}`);
   console.log(`  Successful:     ${success}`);
   console.log(`  Failed:         ${failed}`);
+  console.log(`  Skipped (dup):  ${skipped}`);
   console.log(`  Collection:     roadmap_details`);
   console.log("========================================\n");
 
