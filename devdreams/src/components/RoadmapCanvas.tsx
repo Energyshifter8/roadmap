@@ -419,7 +419,7 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
         console.log("[RoadmapDetails] done loading");
         setDetailLoading(false);
       });
-  }, [selectedTopic?.id]);
+  }, [selectedTopic]);
 
   useEffect(() => {
     let cancelled = false;
