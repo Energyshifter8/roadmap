@@ -169,26 +169,18 @@ export default function Home() {
                 transition: "all 0.2s",
               }}
               onMouseEnter={(e) => {
-                (
-                  e.currentTarget as HTMLElement
-                ).style.background = "#18181b";
-                (
-                  e.currentTarget as HTMLElement
-                ).style.borderColor = "rgba(255,208,0,0.3)";
-                (
-                  e.currentTarget as HTMLElement
-                ).style.transform = "translateY(-3px)";
+                (e.currentTarget as HTMLElement).style.background = "#18181b";
+                (e.currentTarget as HTMLElement).style.borderColor =
+                  "rgba(255,208,0,0.3)";
+                (e.currentTarget as HTMLElement).style.transform =
+                  "translateY(-3px)";
               }}
               onMouseLeave={(e) => {
-                (
-                  e.currentTarget as HTMLElement
-                ).style.background = "#141414";
-                (
-                  e.currentTarget as HTMLElement
-                ).style.borderColor = "rgba(255,255,255,0.06)";
-                (
-                  e.currentTarget as HTMLElement
-                ).style.transform = "translateY(0)";
+                (e.currentTarget as HTMLElement).style.background = "#141414";
+                (e.currentTarget as HTMLElement).style.borderColor =
+                  "rgba(255,255,255,0.06)";
+                (e.currentTarget as HTMLElement).style.transform =
+                  "translateY(0)";
               }}
             >
               <div

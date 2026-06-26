@@ -56,17 +56,23 @@ const TopicTag = memo(function TopicTag({
           onToggle(node.id);
         }}
         style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          padding: '7px 12px',
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "7px 12px",
           borderRadius: 8,
           fontFamily: "'Inter', sans-serif",
-          fontSize: 12, fontWeight: 500,
-          background: done ? 'rgba(255,208,0,0.1)' : 'transparent',
-          color: done ? '#FFD000' : '#71717a',
-          border: done ? '1px solid rgba(255,208,0,0.2)' : '1px solid rgba(255,255,255,0.04)',
-          cursor: 'pointer',
-          width: '100%', textAlign: 'left',
-          transition: 'all 0.15s',
+          fontSize: 12,
+          fontWeight: 500,
+          background: done ? "rgba(255,208,0,0.1)" : "transparent",
+          color: done ? "#FFD000" : "#71717a",
+          border: done
+            ? "1px solid rgba(255,208,0,0.2)"
+            : "1px solid rgba(255,255,255,0.04)",
+          cursor: "pointer",
+          width: "100%",
+          textAlign: "left",
+          transition: "all 0.15s",
         }}
       >
         {done ? (
@@ -116,8 +122,8 @@ const GroupBox = memo(function GroupBox({
   return (
     <div
       style={{
-        background: '#141414',
-        border: '1px solid rgba(255,255,255,0.06)',
+        background: "#141414",
+        border: "1px solid rgba(255,255,255,0.06)",
         borderRadius: 12,
         padding: 12,
         minWidth: 200,
@@ -217,8 +223,10 @@ function SectionRow({
   if (section.node.level === "note") {
     return (
       <div className="flex justify-center mb-16 relative z-10">
-        <div className="italic text-sm px-4 py-2 border border-dashed rounded-lg whitespace-normal break-words"
-          style={{ color: '#52525b', borderColor: 'rgba(255,255,255,0.08)' }}>
+        <div
+          className="italic text-sm px-4 py-2 border border-dashed rounded-lg whitespace-normal break-words"
+          style={{ color: "#52525b", borderColor: "rgba(255,255,255,0.08)" }}
+        >
           {t(section.node.titleKey)}
         </div>
       </div>
@@ -267,17 +275,17 @@ function SectionRow({
             type="button"
             onClick={() => onToggle(section.node.id)}
             style={{
-              padding: '8px 22px',
+              padding: "8px 22px",
               borderRadius: 6,
               fontFamily: "'Inter', sans-serif",
               fontWeight: 700,
               fontSize: 13,
-              background: done ? '#FFD000' : '#18181b',
-              color: done ? '#0f0f0f' : '#71717a',
-              border: done ? 'none' : '1px solid rgba(255,255,255,0.08)',
-              cursor: 'pointer',
-              boxShadow: done ? '0 0 24px rgba(255,208,0,0.2)' : 'none',
-              transition: 'all 0.15s',
+              background: done ? "#FFD000" : "#18181b",
+              color: done ? "#0f0f0f" : "#71717a",
+              border: done ? "none" : "1px solid rgba(255,255,255,0.08)",
+              cursor: "pointer",
+              boxShadow: done ? "0 0 24px rgba(255,208,0,0.2)" : "none",
+              transition: "all 0.15s",
             }}
           >
             <span className="font-bold text-sm whitespace-normal break-words">
@@ -307,23 +315,34 @@ function ComingSoonPlaceholder({ tab }: { tab: RoadmapTabId }) {
   const tTabs = useTranslations("tabs");
 
   return (
-    <div className="min-h-screen" style={{ background: '#0f0f0f', paddingTop: 52 }}>
+    <div
+      className="min-h-screen"
+      style={{ background: "#0f0f0f", paddingTop: 52 }}
+    >
       <div className="max-w-5xl mx-auto relative px-4">
         <div
           className="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 pointer-events-none"
-          style={{ background: '#27272a', width: 1 }}
+          style={{ background: "#27272a", width: 1 }}
         />
 
         <div className="flex justify-center mb-24 relative z-10">
           <div
             style={{
-              background: '#FFD000',
-              border: 'none',
-              padding: '10px 32px',
-              boxShadow: '0 0 60px rgba(255,208,0,0.2)',
+              background: "#FFD000",
+              border: "none",
+              padding: "10px 32px",
+              boxShadow: "0 0 60px rgba(255,208,0,0.2)",
             }}
           >
-            <h1 style={{ fontFamily: "'Geist Mono', monospace", fontWeight: 700, fontSize: 13, letterSpacing: '0.1em', color: '#0f0f0f' }}>
+            <h1
+              style={{
+                fontFamily: "'Geist Mono', monospace",
+                fontWeight: 700,
+                fontSize: 13,
+                letterSpacing: "0.1em",
+                color: "#0f0f0f",
+              }}
+            >
               {tTabs(tab)}
             </h1>
           </div>
@@ -332,15 +351,22 @@ function ComingSoonPlaceholder({ tab }: { tab: RoadmapTabId }) {
         <div className="flex justify-center relative z-10">
           <div
             style={{
-              background: '#141414',
-              border: '1px solid rgba(255,255,255,0.06)',
+              background: "#141414",
+              border: "1px solid rgba(255,255,255,0.06)",
               borderRadius: 12,
-              padding: '20px 32px',
-              textAlign: 'center',
+              padding: "20px 32px",
+              textAlign: "center",
               maxWidth: 400,
             }}
           >
-            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: '#71717a', fontStyle: 'italic' }}>
+            <p
+              style={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 13,
+                color: "#71717a",
+                fontStyle: "italic",
+              }}
+            >
               {tRoadmap("coming-soon")}
             </p>
           </div>
@@ -475,7 +501,10 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
 
   if (loadingData)
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0f0f0f' }}>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: "#0f0f0f" }}
+      >
         <div className="text-zinc-400 font-mono text-sm animate-pulse">
           Loading roadmap...
         </div>
@@ -487,23 +516,34 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
     `${type.charAt(0).toUpperCase() + type.slice(1)} Developer`;
 
   return (
-    <div className="min-h-screen" style={{ background: '#0f0f0f', paddingTop: 52 }}>
+    <div
+      className="min-h-screen"
+      style={{ background: "#0f0f0f", paddingTop: 52 }}
+    >
       <div className="max-w-5xl mx-auto relative px-4">
         <div
           className="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 pointer-events-none"
-          style={{ background: '#27272a', width: 1 }}
+          style={{ background: "#27272a", width: 1 }}
         />
 
         <div className="flex justify-center mb-24 relative z-10">
           <div
             style={{
-              background: '#FFD000',
-              border: 'none',
-              padding: '10px 32px',
-              boxShadow: '0 0 60px rgba(255,208,0,0.2)',
+              background: "#FFD000",
+              border: "none",
+              padding: "10px 32px",
+              boxShadow: "0 0 60px rgba(255,208,0,0.2)",
             }}
           >
-            <h1 style={{ fontFamily: "'Geist Mono', monospace", fontWeight: 700, fontSize: 13, letterSpacing: '0.1em', color: '#0f0f0f' }}>
+            <h1
+              style={{
+                fontFamily: "'Geist Mono', monospace",
+                fontWeight: 700,
+                fontSize: 13,
+                letterSpacing: "0.1em",
+                color: "#0f0f0f",
+              }}
+            >
               {headerTitle}
             </h1>
           </div>
@@ -526,13 +566,30 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
         onOpenChange={(open) => !open && setSelectedTopic(null)}
         direction="right"
       >
-        <DrawerContent className="bg-[#141414]" style={{ borderLeft: '1px solid rgba(255,208,0,0.3)' }}>
+        <DrawerContent
+          className="bg-[#141414]"
+          style={{ borderLeft: "1px solid rgba(255,208,0,0.3)" }}
+        >
           <DrawerHeader>
-            <DrawerTitle style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 16, color: '#f4f4f5' }}>
+            <DrawerTitle
+              style={{
+                fontFamily: "'Inter', sans-serif",
+                fontWeight: 700,
+                fontSize: 16,
+                color: "#f4f4f5",
+              }}
+            >
               {selectedTopic?.title}
             </DrawerTitle>
             {selectedTopic?.description && (
-              <DrawerDescription style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: '#71717a', lineHeight: 1.7 }}>
+              <DrawerDescription
+                style={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: 13,
+                  color: "#71717a",
+                  lineHeight: 1.7,
+                }}
+              >
                 {selectedTopic.description}
               </DrawerDescription>
             )}
@@ -540,7 +597,10 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
 
           {selectedTopic?.links && selectedTopic.links.length > 0 && (
             <div className="px-4 pb-4">
-              <h3 className="font-bold text-sm uppercase tracking-wide mb-3" style={{ color: '#52525b' }}>
+              <h3
+                className="font-bold text-sm uppercase tracking-wide mb-3"
+                style={{ color: "#52525b" }}
+              >
                 Resources
               </h3>
               <ul className="space-y-2">
@@ -551,16 +611,17 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
-                        display: 'block',
-                        padding: '10px 16px',
+                        display: "block",
+                        padding: "10px 16px",
                         borderRadius: 8,
-                        background: 'rgba(255,208,0,0.06)',
-                        border: '1px solid rgba(255,208,0,0.15)',
-                        color: '#FFD000',
+                        background: "rgba(255,208,0,0.06)",
+                        border: "1px solid rgba(255,208,0,0.15)",
+                        color: "#FFD000",
                         fontFamily: "'Inter', sans-serif",
-                        fontSize: 12, fontWeight: 500,
-                        textDecoration: 'none',
-                        transition: 'all 0.15s',
+                        fontSize: 12,
+                        fontWeight: 500,
+                        textDecoration: "none",
+                        transition: "all 0.15s",
                       }}
                     >
                       {link.title}
@@ -573,13 +634,15 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
 
           {detailLoading ? (
             <div className="px-4 pb-4">
-              <p className="italic text-sm" style={{ color: '#52525b' }}>Loading details...</p>
+              <p className="italic text-sm" style={{ color: "#52525b" }}>
+                Loading details...
+              </p>
             </div>
           ) : (
             !selectedTopic?.description &&
             (!selectedTopic?.links || selectedTopic.links.length === 0) && (
               <div className="px-4 pb-4">
-                <p className="italic text-sm" style={{ color: '#52525b' }}>
+                <p className="italic text-sm" style={{ color: "#52525b" }}>
                   No additional details available for this topic.
                 </p>
               </div>
@@ -587,15 +650,19 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
           )}
 
           <DrawerFooter>
-            <DrawerClose style={{
-              width: '100%', padding: '10px',
-              borderRadius: 8,
-              background: 'transparent',
-              border: '1px solid rgba(255,255,255,0.08)',
-              color: '#71717a',
-              fontFamily: "'Inter', sans-serif",
-              fontSize: 13, cursor: 'pointer',
-            }}>
+            <DrawerClose
+              style={{
+                width: "100%",
+                padding: "10px",
+                borderRadius: 8,
+                background: "transparent",
+                border: "1px solid rgba(255,255,255,0.08)",
+                color: "#71717a",
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 13,
+                cursor: "pointer",
+              }}
+            >
               Close
             </DrawerClose>
           </DrawerFooter>

@@ -92,9 +92,7 @@ export default function Navbar() {
                 fontFamily: "'Inter', sans-serif",
                 background: active ? "#FFD000" : "transparent",
                 color: active ? "#0f0f0f" : "#71717a",
-                border: active
-                  ? "none"
-                  : "1px solid rgba(255,255,255,0.08)",
+                border: active ? "none" : "1px solid rgba(255,255,255,0.08)",
                 cursor: "pointer",
                 textDecoration: "none",
                 transition: "all 0.15s",
