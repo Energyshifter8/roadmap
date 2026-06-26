@@ -524,8 +524,9 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
       <Drawer
         open={selectedTopic !== null}
         onOpenChange={(open) => !open && setSelectedTopic(null)}
+        direction="right"
       >
-        <DrawerContent className="border-t-0 bg-[#141414]" style={{ borderTop: '1px solid rgba(255,208,0,0.3)' }}>
+        <DrawerContent className="bg-[#141414]" style={{ borderLeft: '1px solid rgba(255,208,0,0.3)' }}>
           <DrawerHeader>
             <DrawerTitle style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 16, color: '#f4f4f5' }}>
               {selectedTopic?.title}
