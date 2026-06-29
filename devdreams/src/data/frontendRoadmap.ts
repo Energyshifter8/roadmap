@@ -20,6 +20,8 @@ export type RoadmapSection = {
   node: RoadmapNode;
   left: RoadmapNode[];
   right: RoadmapNode[];
+  milestone?: number;
+  y?: number;
 };
 
 const rd = (

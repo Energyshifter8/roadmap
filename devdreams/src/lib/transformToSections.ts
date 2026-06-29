@@ -32,6 +32,8 @@ export type TransformResult = {
   labelMap: Record<string, string>;
 };
 
+export type MilestoneMap = Record<string, number>; // titleKey → milestone number
+
 // ── helpers ──────────────────────────────────────────────────────────
 
 function getLabel(n: JsonNode): string {
@@ -134,7 +136,10 @@ function buildChildrenOf(edges: JsonNode[]): Map<string, string[]> {
 
 // ── main ─────────────────────────────────────────────────────────────
 
-export function transformGithubJSON(raw: JsonNode): TransformResult {
+export function transformGithubJSON(
+  raw: JsonNode,
+  milestoneMap?: MilestoneMap,
+): TransformResult {
   const rawNodes = (raw.nodes ?? []) as JsonNode[];
   const rawEdges = (raw.edges ?? []) as JsonNode[];
 
@@ -211,6 +216,16 @@ export function transformGithubJSON(raw: JsonNode): TransformResult {
     }
 
     for (const r of spineRoots) walk(strId(r));
+
+    // Append any topic node not reached by the DFS walk (isolated branches)
+    const remaining = rawNodes
+      .filter((n) => getType(n) === "topic" && !visited.has(strId(n)))
+      .sort((a, b) => getPos(a).y - getPos(b).y);
+    for (const n of remaining) {
+      ordered.push(n);
+      visited.add(strId(n));
+    }
+
     spineNodes = ordered;
   }
 
@@ -231,6 +246,8 @@ export function transformGithubJSON(raw: JsonNode): TransformResult {
     const secKey = toKey(secLabel);
     labelMap[secKey] = secLabel;
 
+    const sectionPos = getPos(sec);
+
     const sectionNode: RoadmapNode = {
       id: secId,
       titleKey: secKey,
@@ -239,6 +256,8 @@ export function transformGithubJSON(raw: JsonNode): TransformResult {
       description: extractDescription(sec),
       links: extractLinks(sec),
     };
+
+    const secY = sectionPos.y;
 
     // Section-based roadmaps store children via edges TO the section
     // (not from it). Topic-based roadmaps use standard parent→child edges.
@@ -287,13 +306,23 @@ export function transformGithubJSON(raw: JsonNode): TransformResult {
       (side === "left" ? left : right).push(rn);
     }
 
-    return { node: sectionNode, left, right };
+    return { node: sectionNode, left, right, y: secY };
   });
 
-  // ── 6. Filter out empty sections ─────────────────────────────────
-  const meaningful = sections.filter(
-    (s) => s.left.length > 0 || s.right.length > 0 || spineNodes.length < 5,
-  );
+  // ── 6. Assign milestones & sort ──────────────────────────────────
+  if (milestoneMap) {
+    for (const s of sections) {
+      const ms = milestoneMap[s.node.titleKey];
+      if (ms !== undefined) s.milestone = ms;
+    }
+  }
 
-  return { sections: meaningful, labelMap };
+  sections.sort((a, b) => {
+    const ma = a.milestone ?? 999;
+    const mb = b.milestone ?? 999;
+    if (ma !== mb) return ma - mb;
+    return (a.y ?? 0) - (b.y ?? 0);
+  });
+
+  return { sections, labelMap };
 }

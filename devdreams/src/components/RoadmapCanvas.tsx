@@ -313,6 +313,50 @@ function SectionRow({
 }
 
 
+function MilestoneHeader({
+  number,
+  title,
+}: {
+  number: number;
+  title: string;
+}) {
+  return (
+    <div className="flex justify-center mb-12 mt-8 relative z-10">
+      <div
+        className="flex items-center gap-3"
+        style={{
+          background: "rgba(255,208,0,0.06)",
+          border: "1px solid rgba(255,208,0,0.15)",
+          borderRadius: 8,
+          padding: "8px 20px",
+        }}
+      >
+        <span
+          className="font-bold shrink-0"
+          style={{
+            fontFamily: "'Geist Mono', monospace",
+            fontSize: 10,
+            color: "#FFD000",
+            letterSpacing: "0.12em",
+          }}
+        >
+          MILESTONE {number}
+        </span>
+        <span
+          style={{
+            fontFamily: "'Inter', sans-serif",
+            fontSize: 13,
+            fontWeight: 600,
+            color: "#e4e4e7",
+          }}
+        >
+          {title}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function RoadmapContent({ type }: { type: RoadmapTabId }) {
   const [completed, setCompleted] = useState<Record<string, boolean>>(() => {
     if (typeof window === "undefined") return {};
@@ -338,12 +382,24 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
 
   const [sections, setSections] = useState<RoadmapSection[]>([]);
   const [labelMap, setLabelMap] = useState<Record<string, string>>({});
+  const [milestoneTitles, setMilestoneTitles] = useState<
+    Record<number, string> | undefined
+  >(undefined);
   const [loadingData, setLoadingData] = useState(true);
 
   const [selectedTopic, setSelectedTopic] = useState<TopicDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   const labelMapRef = useRef(labelMap);
+  const roadmapRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     labelMapRef.current = labelMap;
   }, [labelMap]);
@@ -417,6 +473,7 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
         return r.json() as Promise<{
           sections: RoadmapSection[];
           labelMap: Record<string, string>;
+          milestoneTitles?: Record<number, string>;
         }>;
       })
       .then((data) => {
@@ -425,6 +482,7 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
         const lm: Record<string, string> = data.labelMap ?? {};
         setSections(secs);
         setLabelMap(lm);
+        setMilestoneTitles(data.milestoneTitles as Record<number, string> | undefined);
         setLoadingData(false);
       })
       .catch(() => {
@@ -435,6 +493,25 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
       cancelled = true;
     };
   }, [type]);
+
+  useEffect(() => {
+    if (loadingData || sections.length === 0 || !roadmapRef.current) return;
+    const el = roadmapRef.current;
+    const scrollContainer = el.closest<HTMLElement>('[data-roadmap-scroll]');
+    if (!scrollContainer) return;
+    const spineLine = scrollContainer.querySelector<HTMLElement>(
+      '[data-roadmap-spine]',
+    );
+    if (spineLine) {
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const spineRect = spineLine.getBoundingClientRect();
+      scrollContainer.scrollLeft =
+        spineRect.left -
+        containerRect.left -
+        containerRect.width / 2 +
+        spineRect.width / 2;
+    }
+  }, [loadingData, sections]);
 
   if (loadingData)
     return (
@@ -453,9 +530,14 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
     `${type.charAt(0).toUpperCase() + type.slice(1)} Developer`;
 
   return (
-    <div className="flex-1 pt-[52px]" style={{ background: "#0f0f0f" }}>
-      <div className="max-w-5xl mx-auto relative px-3 sm:px-6">
+    <div className="flex-1 pt-[52px] min-w-0" style={{ background: "#0f0f0f" }}>
+      <div
+        data-roadmap-scroll
+        className="w-full overflow-x-auto overflow-y-hidden scrollbar-thin"
+      >
+      <div className="max-w-5xl mx-auto relative px-3 sm:px-6 min-[320px]:min-w-[800px]">
         <div
+          data-roadmap-spine
           className="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 pointer-events-none"
           style={{ background: "#27272a", width: 1 }}
         />
@@ -483,31 +565,57 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
           </div>
         </div>
 
-        {sections.map((sec) => (
-          <SectionRow
-            key={sec.node.id}
-            section={sec}
-            completed={completed}
-            onToggle={toggle}
-            onSelect={onSelect}
-            labelMap={labelMap}
-          />
-        ))}
+        {sections.reduce<React.ReactNode[]>(
+          (acc, sec, idx) => {
+            const prev = idx > 0 ? sections[idx - 1] : undefined;
+            const ms = sec.milestone;
+            const prevMs = prev?.milestone;
+            if (
+              ms !== undefined &&
+              milestoneTitles?.[ms] &&
+              ms !== prevMs
+            ) {
+              acc.push(
+                <MilestoneHeader
+                  key={`ms-${ms}`}
+                  number={ms}
+                  title={milestoneTitles[ms]}
+                />,
+              );
+            }
+            acc.push(
+              <SectionRow
+                key={sec.node.id}
+                section={sec}
+                completed={completed}
+                onToggle={toggle}
+                onSelect={onSelect}
+                labelMap={labelMap}
+              />,
+            );
+            return acc;
+          },
+          [],
+        )}
+      </div>
       </div>
 
       <Drawer
         open={selectedTopic !== null}
         onOpenChange={(open) => !open && setSelectedTopic(null)}
-        direction="right"
+        direction={isMobile ? "bottom" : "right"}
       >
         <DrawerContent
+          className={
+            isMobile ? "h-[70vh] rounded-t-2xl border-t" : ""
+          }
           style={{
             background: "#141414",
-            borderLeft: "1px solid rgba(255,208,0,0.2)",
+            borderLeft: isMobile ? "none" : "1px solid rgba(255,208,0,0.2)",
             display: "flex",
             flexDirection: "column",
-            maxWidth: "min(400px, 100vw)",
-            height: "100dvh",
+            maxWidth: isMobile ? "100vw" : "min(400px, 100vw)",
+            height: isMobile ? "70vh" : "100dvh",
             top: 0,
           }}
         >
