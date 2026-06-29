@@ -1,6 +1,6 @@
 "use client";
 import { doc, getDoc } from "firebase/firestore";
-import { useTranslations } from "next-intl";
+
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import {
   Drawer,
@@ -312,71 +312,6 @@ function SectionRow({
   );
 }
 
-function ComingSoonPlaceholder({ tab }: { tab: RoadmapTabId }) {
-  const tRoadmap = useTranslations("roadmap");
-  const tTabs = useTranslations("tabs");
-
-  return (
-    <div
-      className="flex-1 pt-[52px]"
-      style={{ background: "#0f0f0f" }}
-    >
-      <div className="max-w-5xl mx-auto relative px-4">
-        <div
-          className="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 pointer-events-none"
-          style={{ background: "#27272a", width: 1 }}
-        />
-
-        <div className="flex justify-center mb-24 relative z-10">
-          <div
-            style={{
-              background: "#FFD000",
-              border: "none",
-              padding: "10px 32px",
-              boxShadow: "0 0 60px rgba(255,208,0,0.2)",
-            }}
-          >
-            <h1
-              style={{
-                fontFamily: "'Geist Mono', monospace",
-                fontWeight: 700,
-                fontSize: 13,
-                letterSpacing: "0.1em",
-                color: "#0f0f0f",
-              }}
-            >
-              {tTabs(tab)}
-            </h1>
-          </div>
-        </div>
-
-        <div className="flex justify-center relative z-10">
-          <div
-            style={{
-              background: "#141414",
-              border: "1px solid rgba(255,255,255,0.06)",
-              borderRadius: 12,
-              padding: "20px 32px",
-              textAlign: "center",
-              maxWidth: 400,
-            }}
-          >
-            <p
-              style={{
-                fontFamily: "'Inter', sans-serif",
-                fontSize: 13,
-                color: "#71717a",
-                fontStyle: "italic",
-              }}
-            >
-              {tRoadmap("coming-soon")}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function RoadmapContent({ type }: { type: RoadmapTabId }) {
   const [completed, setCompleted] = useState<Record<string, boolean>>(() => {
@@ -518,10 +453,7 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
     `${type.charAt(0).toUpperCase() + type.slice(1)} Developer`;
 
   return (
-    <div
-      className="flex-1 pt-[52px]"
-      style={{ background: "#0f0f0f" }}
-    >
+    <div className="flex-1 pt-[52px]" style={{ background: "#0f0f0f" }}>
       <div className="max-w-5xl mx-auto relative px-3 sm:px-6">
         <div
           className="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 pointer-events-none"
@@ -580,99 +512,129 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
           }}
         >
           {/* Header */}
-          <div style={{
-            padding: "20px 20px 16px",
-            borderBottom: "1px solid rgba(255,255,255,0.06)",
-            flexShrink: 0,
-          }}>
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-              <DrawerTitle style={{
-                fontFamily: "'Inter', sans-serif",
-                fontWeight: 700,
-                fontSize: 16,
-                color: "#f4f4f5",
-                lineHeight: 1.4,
-                margin: 0,
-              }}>
+          <div
+            style={{
+              padding: "20px 20px 16px",
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
+              flexShrink: 0,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                gap: 12,
+              }}
+            >
+              <DrawerTitle
+                style={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontWeight: 700,
+                  fontSize: 16,
+                  color: "#f4f4f5",
+                  lineHeight: 1.4,
+                  margin: 0,
+                }}
+              >
                 {selectedTopic?.title}
               </DrawerTitle>
-              <DrawerClose style={{
-                flexShrink: 0,
-                width: 28, height: 28,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                background: "transparent",
-                border: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: 6,
-                color: "#71717a",
-                cursor: "pointer",
-                fontSize: 14,
-                lineHeight: 1,
-              }}>
+              <DrawerClose
+                style={{
+                  flexShrink: 0,
+                  width: 28,
+                  height: 28,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "transparent",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: 6,
+                  color: "#71717a",
+                  cursor: "pointer",
+                  fontSize: 14,
+                  lineHeight: 1,
+                }}
+              >
                 ✕
               </DrawerClose>
             </div>
           </div>
 
           {/* Scrollable body */}
-          <div style={{
-            flex: 1,
-            overflowY: "auto",
-            padding: "20px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 20,
-          }}>
+          <div
+            style={{
+              flex: 1,
+              overflowY: "auto",
+              padding: "20px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 20,
+            }}
+          >
             {/* Description */}
             {selectedTopic?.description ? (
               <div>
-                <p style={{
-                  fontFamily: "'Geist Mono', monospace",
-                  fontSize: 10,
-                  fontWeight: 600,
-                  letterSpacing: "0.12em",
-                  color: "#3f3f46",
-                  textTransform: "uppercase",
-                  marginBottom: 10,
-                }}>
+                <p
+                  style={{
+                    fontFamily: "'Geist Mono', monospace",
+                    fontSize: 10,
+                    fontWeight: 600,
+                    letterSpacing: "0.12em",
+                    color: "#3f3f46",
+                    textTransform: "uppercase",
+                    marginBottom: 10,
+                  }}
+                >
                   Тайлбар
                 </p>
-                <DrawerDescription style={{
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: 14,
-                  color: "#a1a1aa",
-                  lineHeight: 1.75,
-                  margin: 0,
-                  whiteSpace: "pre-wrap",
-                }}>
+                <DrawerDescription
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 14,
+                    color: "#a1a1aa",
+                    lineHeight: 1.75,
+                    margin: 0,
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
                   {selectedTopic.description}
                 </DrawerDescription>
               </div>
-            ) : !detailLoading && (
-              <p style={{
-                fontFamily: "'Inter', sans-serif",
-                fontSize: 13,
-                color: "#52525b",
-                fontStyle: "italic",
-              }}>
-                Энэ сэдвийн тайлбар удахгүй нэмэгдэнэ.
-              </p>
+            ) : (
+              !detailLoading && (
+                <p
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 13,
+                    color: "#52525b",
+                    fontStyle: "italic",
+                  }}
+                >
+                  Энэ сэдвийн тайлбар удахгүй нэмэгдэнэ.
+                </p>
+              )
             )}
 
             {/* Resources */}
             {selectedTopic?.links && selectedTopic.links.length > 0 && (
               <div>
-                <p style={{
-                  fontFamily: "'Geist Mono', monospace",
-                  fontSize: 10,
-                  fontWeight: 600,
-                  letterSpacing: "0.12em",
-                  color: "#3f3f46",
-                  textTransform: "uppercase",
-                  marginBottom: 10,
-                }}>
+                <p
+                  style={{
+                    fontFamily: "'Geist Mono', monospace",
+                    fontSize: 10,
+                    fontWeight: 600,
+                    letterSpacing: "0.12em",
+                    color: "#3f3f46",
+                    textTransform: "uppercase",
+                    marginBottom: 10,
+                  }}
+                >
                   Эх сурвалж
                 </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: 8 }}
+                >
                   {selectedTopic.links.map((link, i) => (
                     <a
                       key={link.url}
@@ -695,28 +657,47 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
                         transition: "all 0.15s",
                         lineHeight: 1.4,
                       }}
-                      onMouseEnter={e => {
-                        (e.currentTarget as HTMLElement).style.background = "rgba(255,208,0,0.08)";
-                        (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,208,0,0.25)";
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLElement).style.background =
+                          "rgba(255,208,0,0.08)";
+                        (e.currentTarget as HTMLElement).style.borderColor =
+                          "rgba(255,208,0,0.25)";
                       }}
-                      onMouseLeave={e => {
-                        (e.currentTarget as HTMLElement).style.background = "rgba(255,208,0,0.04)";
-                        (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,208,0,0.12)";
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLElement).style.background =
+                          "rgba(255,208,0,0.04)";
+                        (e.currentTarget as HTMLElement).style.borderColor =
+                          "rgba(255,208,0,0.12)";
                       }}
                     >
-                      <span style={{
-                        flexShrink: 0, width: 20, height: 20,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        background: "rgba(255,208,0,0.1)",
-                        borderRadius: 4,
-                        fontSize: 10, color: "#FFD000",
-                        fontFamily: "'Geist Mono', monospace",
-                        fontWeight: 700,
-                      }}>
+                      <span
+                        style={{
+                          flexShrink: 0,
+                          width: 20,
+                          height: 20,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          background: "rgba(255,208,0,0.1)",
+                          borderRadius: 4,
+                          fontSize: 10,
+                          color: "#FFD000",
+                          fontFamily: "'Geist Mono', monospace",
+                          fontWeight: 700,
+                        }}
+                      >
                         {i + 1}
                       </span>
                       <span style={{ flex: 1 }}>{link.title}</span>
-                      <span style={{ flexShrink: 0, color: "#52525b", fontSize: 12 }}>↗</span>
+                      <span
+                        style={{
+                          flexShrink: 0,
+                          color: "#52525b",
+                          fontSize: 12,
+                        }}
+                      >
+                        ↗
+                      </span>
                     </a>
                   ))}
                 </div>
@@ -725,28 +706,38 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
 
             {/* Loading */}
             {detailLoading && (
-              <div style={{
-                display: "flex", alignItems: "center", gap: 8,
-                color: "#52525b",
-                fontFamily: "'Geist Mono', monospace",
-                fontSize: 12,
-              }}>
-                <span style={{
-                  width: 8, height: 8, borderRadius: "50%",
-                  background: "#FFD000",
-                  animation: "pulse 1.5s ease-in-out infinite",
-                }} />
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  color: "#52525b",
+                  fontFamily: "'Geist Mono', monospace",
+                  fontSize: 12,
+                }}
+              >
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    background: "#FFD000",
+                    animation: "pulse 1.5s ease-in-out infinite",
+                  }}
+                />
                 Ачааллаж байна...
               </div>
             )}
           </div>
 
           {/* Footer */}
-          <div style={{
-            padding: "12px 20px",
-            borderTop: "1px solid rgba(255,255,255,0.06)",
-            flexShrink: 0,
-          }}>
+          <div
+            style={{
+              padding: "12px 20px",
+              borderTop: "1px solid rgba(255,255,255,0.06)",
+              flexShrink: 0,
+            }}
+          >
             <a
               href="https://roadmap.sh"
               target="_blank"
@@ -773,9 +764,5 @@ interface RoadmapCanvasProps {
 }
 
 export default function RoadmapCanvas({ activeTab }: RoadmapCanvasProps) {
-  if (activeTab !== "frontend") {
-    return <ComingSoonPlaceholder tab={activeTab} />;
-  }
-
   return <RoadmapContent type={activeTab} />;
 }
