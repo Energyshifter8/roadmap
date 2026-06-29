@@ -90,7 +90,9 @@ async function main() {
   process.stdout.write("  Fetching backend roadmap... ");
   let nodes: RawNode[];
   try {
-    const res = await fetch(BACKEND_URL, { signal: AbortSignal.timeout(15_000) });
+    const res = await fetch(BACKEND_URL, {
+      signal: AbortSignal.timeout(15_000),
+    });
     if (!res.ok) {
       console.log(`✖ HTTP ${res.status}`);
       process.exit(1);

@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import {
-  transformGithubJSON,
   type MilestoneMap,
+  transformGithubJSON,
 } from "@/lib/transformToSections";
 
 const URLS: Record<string, string> = {
@@ -16,7 +16,7 @@ const URLS: Record<string, string> = {
 };
 
 const MILESTONES_BACKEND: MilestoneMap = {
-  "internet": 1,
+  internet: 1,
   "pick-a-language": 3,
   "version-control-systems": 4,
   "repo-hosting-services": 4,
@@ -25,13 +25,13 @@ const MILESTONES_BACKEND: MilestoneMap = {
   "scaling-databases": 5,
   "nosql-databases": 5,
   "learn-about-apis": 6,
-  "caching": 6,
+  caching: 6,
   "message-brokers": 6,
   "search-engines": 6,
   "web-servers": 6,
   "real-time-data": 6,
   "web-security": 7,
-  "testing": 7,
+  testing: 7,
   "containerization-vs-virtualization": 8,
   "ci-cd": 8,
 };
@@ -62,8 +62,7 @@ export async function GET(
     if (!res.ok) throw new Error(`GitHub ${res.status}`);
     const raw = await res.json();
     const milestoneMap = type === "backend" ? MILESTONES_BACKEND : undefined;
-    const milestoneTitles =
-      type === "backend" ? MILESTONE_TITLES : undefined;
+    const milestoneTitles = type === "backend" ? MILESTONE_TITLES : undefined;
     const { sections, labelMap } = transformGithubJSON(raw, milestoneMap);
     return NextResponse.json({ sections, labelMap, milestoneTitles });
   } catch (err) {

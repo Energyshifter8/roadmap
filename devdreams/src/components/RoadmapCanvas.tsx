@@ -7,8 +7,6 @@ import {
   DrawerClose,
   DrawerContent,
   DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
 import type { RoadmapNode, RoadmapSection } from "@/data/frontendRoadmap";
@@ -312,14 +310,7 @@ function SectionRow({
   );
 }
 
-
-function MilestoneHeader({
-  number,
-  title,
-}: {
-  number: number;
-  title: string;
-}) {
+function MilestoneHeader({ number, title }: { number: number; title: string }) {
   return (
     <div className="flex justify-center mb-12 mt-8 relative z-10">
       <div
@@ -482,7 +473,9 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
         const lm: Record<string, string> = data.labelMap ?? {};
         setSections(secs);
         setLabelMap(lm);
-        setMilestoneTitles(data.milestoneTitles as Record<number, string> | undefined);
+        setMilestoneTitles(
+          data.milestoneTitles as Record<number, string> | undefined,
+        );
         setLoadingData(false);
       })
       .catch(() => {
@@ -497,10 +490,10 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
   useEffect(() => {
     if (loadingData || sections.length === 0 || !roadmapRef.current) return;
     const el = roadmapRef.current;
-    const scrollContainer = el.closest<HTMLElement>('[data-roadmap-scroll]');
+    const scrollContainer = el.closest<HTMLElement>("[data-roadmap-scroll]");
     if (!scrollContainer) return;
     const spineLine = scrollContainer.querySelector<HTMLElement>(
-      '[data-roadmap-spine]',
+      "[data-roadmap-spine]",
     );
     if (spineLine) {
       const containerRect = scrollContainer.getBoundingClientRect();
@@ -535,46 +528,41 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
         data-roadmap-scroll
         className="w-full overflow-x-auto overflow-y-hidden scrollbar-thin"
       >
-      <div className="max-w-5xl mx-auto relative px-3 sm:px-6 min-[320px]:min-w-[800px]">
-        <div
-          data-roadmap-spine
-          className="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 pointer-events-none"
-          style={{ background: "#27272a", width: 1 }}
-        />
-
-        <div className="flex justify-center mb-24 relative z-10">
+        <div className="max-w-5xl mx-auto relative px-3 sm:px-6 min-[320px]:min-w-[800px]">
           <div
-            style={{
-              background: "#FFD000",
-              border: "none",
-              padding: "10px 32px",
-              boxShadow: "0 0 60px rgba(255,208,0,0.2)",
-            }}
-          >
-            <h1
+            data-roadmap-spine
+            className="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 pointer-events-none"
+            style={{ background: "#27272a", width: 1 }}
+          />
+
+          <div className="flex justify-center mb-24 relative z-10">
+            <div
               style={{
-                fontFamily: "'Geist Mono', monospace",
-                fontWeight: 700,
-                fontSize: 13,
-                letterSpacing: "0.1em",
-                color: "#0f0f0f",
+                background: "#FFD000",
+                border: "none",
+                padding: "10px 32px",
+                boxShadow: "0 0 60px rgba(255,208,0,0.2)",
               }}
             >
-              {headerTitle}
-            </h1>
+              <h1
+                style={{
+                  fontFamily: "'Geist Mono', monospace",
+                  fontWeight: 700,
+                  fontSize: 13,
+                  letterSpacing: "0.1em",
+                  color: "#0f0f0f",
+                }}
+              >
+                {headerTitle}
+              </h1>
+            </div>
           </div>
-        </div>
 
-        {sections.reduce<React.ReactNode[]>(
-          (acc, sec, idx) => {
+          {sections.reduce<React.ReactNode[]>((acc, sec, idx) => {
             const prev = idx > 0 ? sections[idx - 1] : undefined;
             const ms = sec.milestone;
             const prevMs = prev?.milestone;
-            if (
-              ms !== undefined &&
-              milestoneTitles?.[ms] &&
-              ms !== prevMs
-            ) {
+            if (ms !== undefined && milestoneTitles?.[ms] && ms !== prevMs) {
               acc.push(
                 <MilestoneHeader
                   key={`ms-${ms}`}
@@ -594,10 +582,8 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
               />,
             );
             return acc;
-          },
-          [],
-        )}
-      </div>
+          }, [])}
+        </div>
       </div>
 
       <Drawer
@@ -606,9 +592,7 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
         direction={isMobile ? "bottom" : "right"}
       >
         <DrawerContent
-          className={
-            isMobile ? "h-[70vh] rounded-t-2xl border-t" : ""
-          }
+          className={isMobile ? "h-[70vh] rounded-t-2xl border-t" : ""}
           style={{
             background: "#141414",
             borderLeft: isMobile ? "none" : "1px solid rgba(255,208,0,0.2)",
