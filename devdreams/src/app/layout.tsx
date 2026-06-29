@@ -24,8 +24,8 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
-      <body className={`${inter.variable} font-sans antialiased`}>
+    <html lang={locale} className="dark h-full">
+      <body className={`${inter.variable} font-sans antialiased h-full`}>
         <NextIntlClientProvider messages={messages}>
           <AppShell>{children}</AppShell>
         </NextIntlClientProvider>

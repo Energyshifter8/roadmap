@@ -318,8 +318,8 @@ function ComingSoonPlaceholder({ tab }: { tab: RoadmapTabId }) {
 
   return (
     <div
-      className="min-h-screen"
-      style={{ background: "#0f0f0f", paddingTop: 52 }}
+      className="flex-1 pt-[52px]"
+      style={{ background: "#0f0f0f" }}
     >
       <div className="max-w-5xl mx-auto relative px-4">
         <div
@@ -504,7 +504,7 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
   if (loadingData)
     return (
       <div
-        className="min-h-screen flex items-center justify-center"
+        className="flex-1 flex items-center justify-center"
         style={{ background: "#0f0f0f" }}
       >
         <div className="text-zinc-400 font-mono text-sm animate-pulse">
@@ -519,8 +519,8 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
 
   return (
     <div
-      className="min-h-screen"
-      style={{ background: "#0f0f0f", paddingTop: 52 }}
+      className="flex-1 pt-[52px]"
+      style={{ background: "#0f0f0f" }}
     >
       <div className="max-w-5xl mx-auto relative px-3 sm:px-6">
         <div
