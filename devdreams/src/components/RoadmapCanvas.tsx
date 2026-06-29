@@ -125,8 +125,10 @@ const GroupBox = memo(function GroupBox({
         background: "#141414",
         border: "1px solid rgba(255,255,255,0.06)",
         borderRadius: 12,
-        padding: 12,
-        minWidth: 200,
+        padding: 10,
+        minWidth: 0,
+        width: "100%",
+        maxWidth: 260,
       }}
     >
       <div className="flex flex-col gap-2">
@@ -257,7 +259,7 @@ function SectionRow({
         ))}
       </svg>
 
-      <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-x-24">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-start gap-x-6 sm:gap-x-16 md:gap-x-24">
         <div className="flex justify-end">
           {hasLeft && (
             <GroupBox
@@ -520,7 +522,7 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
       className="min-h-screen"
       style={{ background: "#0f0f0f", paddingTop: 52 }}
     >
-      <div className="max-w-5xl mx-auto relative px-4">
+      <div className="max-w-5xl mx-auto relative px-3 sm:px-6">
         <div
           className="absolute left-1/2 top-0 bottom-0 -translate-x-1/2 pointer-events-none"
           style={{ background: "#27272a", width: 1 }}
@@ -567,105 +569,199 @@ function RoadmapContent({ type }: { type: RoadmapTabId }) {
         direction="right"
       >
         <DrawerContent
-          className="bg-[#141414]"
-          style={{ borderLeft: "1px solid rgba(255,208,0,0.3)" }}
+          style={{
+            background: "#141414",
+            borderLeft: "1px solid rgba(255,208,0,0.2)",
+            display: "flex",
+            flexDirection: "column",
+            maxWidth: "min(400px, 100vw)",
+            height: "100dvh",
+            top: 0,
+          }}
         >
-          <DrawerHeader>
-            <DrawerTitle
-              style={{
+          {/* Header */}
+          <div style={{
+            padding: "20px 20px 16px",
+            borderBottom: "1px solid rgba(255,255,255,0.06)",
+            flexShrink: 0,
+          }}>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+              <DrawerTitle style={{
                 fontFamily: "'Inter', sans-serif",
                 fontWeight: 700,
                 fontSize: 16,
                 color: "#f4f4f5",
-              }}
-            >
-              {selectedTopic?.title}
-            </DrawerTitle>
-            {selectedTopic?.description && (
-              <DrawerDescription
-                style={{
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: 13,
-                  color: "#71717a",
-                  lineHeight: 1.7,
-                }}
-              >
-                {selectedTopic.description}
-              </DrawerDescription>
-            )}
-          </DrawerHeader>
+                lineHeight: 1.4,
+                margin: 0,
+              }}>
+                {selectedTopic?.title}
+              </DrawerTitle>
+              <DrawerClose style={{
+                flexShrink: 0,
+                width: 28, height: 28,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                background: "transparent",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: 6,
+                color: "#71717a",
+                cursor: "pointer",
+                fontSize: 14,
+                lineHeight: 1,
+              }}>
+                ✕
+              </DrawerClose>
+            </div>
+          </div>
 
-          {selectedTopic?.links && selectedTopic.links.length > 0 && (
-            <div className="px-4 pb-4">
-              <h3
-                className="font-bold text-sm uppercase tracking-wide mb-3"
-                style={{ color: "#52525b" }}
-              >
-                Resources
-              </h3>
-              <ul className="space-y-2">
-                {selectedTopic.links.map((link) => (
-                  <li key={link.url}>
+          {/* Scrollable body */}
+          <div style={{
+            flex: 1,
+            overflowY: "auto",
+            padding: "20px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 20,
+          }}>
+            {/* Description */}
+            {selectedTopic?.description ? (
+              <div>
+                <p style={{
+                  fontFamily: "'Geist Mono', monospace",
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: "0.12em",
+                  color: "#3f3f46",
+                  textTransform: "uppercase",
+                  marginBottom: 10,
+                }}>
+                  Тайлбар
+                </p>
+                <DrawerDescription style={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: 14,
+                  color: "#a1a1aa",
+                  lineHeight: 1.75,
+                  margin: 0,
+                  whiteSpace: "pre-wrap",
+                }}>
+                  {selectedTopic.description}
+                </DrawerDescription>
+              </div>
+            ) : !detailLoading && (
+              <p style={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 13,
+                color: "#52525b",
+                fontStyle: "italic",
+              }}>
+                Энэ сэдвийн тайлбар удахгүй нэмэгдэнэ.
+              </p>
+            )}
+
+            {/* Resources */}
+            {selectedTopic?.links && selectedTopic.links.length > 0 && (
+              <div>
+                <p style={{
+                  fontFamily: "'Geist Mono', monospace",
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: "0.12em",
+                  color: "#3f3f46",
+                  textTransform: "uppercase",
+                  marginBottom: 10,
+                }}>
+                  Эх сурвалж
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {selectedTopic.links.map((link, i) => (
                     <a
+                      key={link.url}
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
-                        display: "block",
-                        padding: "10px 16px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        padding: "11px 14px",
                         borderRadius: 8,
-                        background: "rgba(255,208,0,0.06)",
-                        border: "1px solid rgba(255,208,0,0.15)",
-                        color: "#FFD000",
+                        background: "rgba(255,208,0,0.04)",
+                        border: "1px solid rgba(255,208,0,0.12)",
+                        color: "#e4c200",
                         fontFamily: "'Inter', sans-serif",
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: 500,
                         textDecoration: "none",
                         transition: "all 0.15s",
+                        lineHeight: 1.4,
+                      }}
+                      onMouseEnter={e => {
+                        (e.currentTarget as HTMLElement).style.background = "rgba(255,208,0,0.08)";
+                        (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,208,0,0.25)";
+                      }}
+                      onMouseLeave={e => {
+                        (e.currentTarget as HTMLElement).style.background = "rgba(255,208,0,0.04)";
+                        (e.currentTarget as HTMLElement).style.borderColor = "rgba(255,208,0,0.12)";
                       }}
                     >
-                      {link.title}
+                      <span style={{
+                        flexShrink: 0, width: 20, height: 20,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        background: "rgba(255,208,0,0.1)",
+                        borderRadius: 4,
+                        fontSize: 10, color: "#FFD000",
+                        fontFamily: "'Geist Mono', monospace",
+                        fontWeight: 700,
+                      }}>
+                        {i + 1}
+                      </span>
+                      <span style={{ flex: 1 }}>{link.title}</span>
+                      <span style={{ flexShrink: 0, color: "#52525b", fontSize: 12 }}>↗</span>
                     </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {detailLoading ? (
-            <div className="px-4 pb-4">
-              <p className="italic text-sm" style={{ color: "#52525b" }}>
-                Loading details...
-              </p>
-            </div>
-          ) : (
-            !selectedTopic?.description &&
-            (!selectedTopic?.links || selectedTopic.links.length === 0) && (
-              <div className="px-4 pb-4">
-                <p className="italic text-sm" style={{ color: "#52525b" }}>
-                  No additional details available for this topic.
-                </p>
+                  ))}
+                </div>
               </div>
-            )
-          )}
+            )}
 
-          <DrawerFooter>
-            <DrawerClose
+            {/* Loading */}
+            {detailLoading && (
+              <div style={{
+                display: "flex", alignItems: "center", gap: 8,
+                color: "#52525b",
+                fontFamily: "'Geist Mono', monospace",
+                fontSize: 12,
+              }}>
+                <span style={{
+                  width: 8, height: 8, borderRadius: "50%",
+                  background: "#FFD000",
+                  animation: "pulse 1.5s ease-in-out infinite",
+                }} />
+                Ачааллаж байна...
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div style={{
+            padding: "12px 20px",
+            borderTop: "1px solid rgba(255,255,255,0.06)",
+            flexShrink: 0,
+          }}>
+            <a
+              href="https://roadmap.sh"
+              target="_blank"
+              rel="noopener noreferrer"
               style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: 8,
-                background: "transparent",
-                border: "1px solid rgba(255,255,255,0.08)",
-                color: "#71717a",
-                fontFamily: "'Inter', sans-serif",
-                fontSize: 13,
-                cursor: "pointer",
+                fontFamily: "'Geist Mono', monospace",
+                fontSize: 10,
+                color: "#3f3f46",
+                textDecoration: "none",
+                letterSpacing: "0.05em",
               }}
             >
-              Close
-            </DrawerClose>
-          </DrawerFooter>
+              powered by roadmap.sh →
+            </a>
+          </div>
         </DrawerContent>
       </Drawer>
     </div>
