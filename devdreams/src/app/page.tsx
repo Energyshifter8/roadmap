@@ -94,7 +94,7 @@ export default function Home() {
             transition: "all 0.2s",
           }}
         >
-          Замын зурагт орох →
+          Get started →
         </a>
       </div>
 
