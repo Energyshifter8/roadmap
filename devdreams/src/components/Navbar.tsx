@@ -26,6 +26,7 @@ export default function Navbar() {
   function switchLocale() {
     const next = locale === "mn" ? "en" : "mn";
     startTransition(() => {
+      // biome-ignore lint/suspicious/noDocumentCookie: Cookie Store API lacks universal browser support
       document.cookie = `NEXT_LOCALE=${next}; path=/; max-age=31536000; SameSite=Lax`;
       router.refresh();
     });
