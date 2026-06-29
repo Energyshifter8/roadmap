@@ -1,7 +1,10 @@
 {
   "landing": {
     "title": "Welcome to DevDreams",
-    "subtitle": "Choose your path and start learning the skills you need."
+    "heroLine1": "Your path to",
+    "heroLine2": "mastery",
+    "subtitle": "Structured, opinionated learning paths for modern developers. Follow the spine. Build what matters.",
+    "cta": "Explore Roadmaps"
   },
   "tabs": {
     "frontend": "Frontend",
