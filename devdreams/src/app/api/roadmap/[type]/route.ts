@@ -3,13 +3,13 @@ import { transformGithubJSON } from "@/lib/transformToSections";
 
 const URLS: Record<string, string> = {
   frontend:
-    "https://raw.githubusercontent.com/nilbuild/developer-roadmap/master/src/data/roadmaps/frontend/frontend.json",
+    "https://raw.githubusercontent.com/nilbuild/developer-roadmap/refs/heads/master/src/data/roadmaps/frontend/frontend.json",
   backend:
-    "https://raw.githubusercontent.com/nilbuild/developer-roadmap/master/src/data/roadmaps/backend/backend.json",
+    "https://raw.githubusercontent.com/nilbuild/developer-roadmap/refs/heads/master/src/data/roadmaps/backend/backend.json",
   devops:
-    "https://raw.githubusercontent.com/nilbuild/developer-roadmap/master/src/data/roadmaps/devops/devops.json",
+    "https://raw.githubusercontent.com/nilbuild/developer-roadmap/refs/heads/master/src/data/roadmaps/devops/devops.json",
   mobile:
-    "https://raw.githubusercontent.com/nilbuild/developer-roadmap/master/src/data/roadmaps/android/android.json",
+    "https://raw.githubusercontent.com/nilbuild/developer-roadmap/refs/heads/master/src/data/roadmaps/android/android.json",
 };
 
 export async function GET(

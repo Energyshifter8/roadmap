@@ -150,11 +150,14 @@ export function transformGithubJSON(raw: JsonNode): TransformResult {
   const labelMap: Record<string, string> = {};
 
   // ── 2. Detect data format ────────────────────────────────────────
-  //     Some roadmaps (backend, devops, android) use `section` type
-  //     as the spine. Frontend uses `topic` as the spine.
+  //     Frontend uses `topic→topic` as the spine (pedagogical order).
+  //     Backend, devops, android have unlabeled `section` placeholders
+  //     so we skip them and use topic→topic chains too.
   //     `group` and `linksgroup` are edge‑case containers.
 
-  const hasSection = rawNodes.some((n) => getType(n) === "section");
+  const hasSection = rawNodes.some(
+    (n) => getType(n) === "section" && getLabel(n).trim().length > 0,
+  );
   const hasGroup = rawNodes.some((n) => getType(n) === "group");
   const spineType = hasSection || hasGroup ? "section" : "topic";
 

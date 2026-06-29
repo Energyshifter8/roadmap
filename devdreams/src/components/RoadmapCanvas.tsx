@@ -65,7 +65,7 @@ const TopicTag = memo(function TopicTag({
           fontSize: 12,
           fontWeight: 500,
           background: done ? "rgba(255,208,0,0.1)" : "transparent",
-          color: done ? "#FFD000" : "#71717a",
+          color: done ? "#FFD000" : "#a1a1aa",
           border: done
             ? "1px solid rgba(255,208,0,0.2)"
             : "1px solid rgba(255,255,255,0.04)",
@@ -283,7 +283,7 @@ function SectionRow({
               fontWeight: 700,
               fontSize: 13,
               background: done ? "#FFD000" : "#18181b",
-              color: done ? "#0f0f0f" : "#71717a",
+              color: done ? "#0f0f0f" : "#d4d4d8",
               border: done ? "none" : "1px solid rgba(255,255,255,0.08)",
               cursor: "pointer",
               boxShadow: done ? "0 0 24px rgba(255,208,0,0.2)" : "none",

@@ -51,7 +51,7 @@ function toKey(label: string): string {
 /* ------------------------------------------------------------------ */
 
 const BACKEND_URL =
-  "https://raw.githubusercontent.com/nilbuild/developer-roadmap/master/src/data/roadmaps/backend/backend.json";
+  "https://raw.githubusercontent.com/nilbuild/developer-roadmap/refs/heads/master/src/data/roadmaps/backend/backend.json";
 
 async function main() {
   console.log("========================================");
