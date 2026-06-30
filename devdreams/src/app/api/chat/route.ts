@@ -1,9 +1,18 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI } from "@google/genai";
 import { Pinecone } from "@pinecone-database/pinecone";
 import { type NextRequest, NextResponse } from "next/server";
 
-const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
+function getPineconeApiKey(): string {
+  const key = process.env.PINECONE_API_KEY;
+  if (!key) throw new Error("Missing PINECONE_API_KEY");
+  return key;
+}
+
+function getGeminiApiKey(): string {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) throw new Error("Missing GEMINI_API_KEY");
+  return key;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,15 +22,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing query" }, { status: 400 });
     }
 
+    const pc = new Pinecone({ apiKey: getPineconeApiKey() });
     const indexName =
       process.env.PINECONE_INDEX_NAME ?? "llama-text-embed-v2-index";
     const index = pc.index(indexName);
 
     const searchResult = await index.searchRecords({
-      query: {
-        topK: 5,
-        inputs: { text: query },
-      },
+      query: { topK: 5, inputs: { text: query } },
       fields: ["nodeId", "description", "resourceTitles", "resourceUrls"],
     });
 
@@ -46,19 +53,25 @@ export async function POST(req: NextRequest) {
 
     const systemPrompt =
       locale === "mn"
-        ? `Чи DevDreams платформын AI туслах. Дараах roadmap topic-уудын мэдээллийг ашиглан хэрэглэгчийн асуултад Монгол хэлээр товч, тодорхой хариулна. Зөвхөн өгөгдсэн context-д тулгуурлан хариул. Context-д байхгүй зүйлийг өөрөөр зохиож хариулахгүй.\n\nContext:\n${context}`
-        : `You are the DevDreams platform AI assistant. Using the following roadmap topic information, answer the user's question concisely and clearly. Only base your answer on the given context. Don't make up information not in the context.\n\nContext:\n${context}`;
+        ? `Чи DevDreams платформын AI туслах. Дараах roadmap topic-уудын мэдээллийг ашиглан хэрэглэгчийн асуултад Монгол хэлээр товч, тодорхой хариулна. Зөвхөн өгөгдсэн context-д тулгуурлан хариул.\n\nContext:\n${context}`
+        : `You are the DevDreams platform AI assistant. Using the following roadmap topic information, answer the user's question concisely and clearly. Only base your answer on the given context.\n\nContext:\n${context}`;
 
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 500,
-      system: systemPrompt,
-      messages: [{ role: "user", content: query }],
+    const ai = new GoogleGenAI({ apiKey: getGeminiApiKey() });
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents: query,
+      config: {
+        systemInstruction: systemPrompt,
+        maxOutputTokens: 500,
+      },
     });
 
-    const answerBlock = response.content.find((b) => b.type === "text");
     const answer =
-      answerBlock?.type === "text" ? answerBlock.text : "No answer generated.";
+      response.text ??
+      (locale === "mn"
+        ? "Хариулт үүсгэхэд алдаа гарлаа."
+        : "Failed to generate answer.");
 
     const sources = matches.slice(0, 3).map((m) => {
       const fields = m.fields as Record<string, unknown>;

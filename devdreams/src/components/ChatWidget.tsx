@@ -3,6 +3,7 @@ import { useLocale } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 
 interface Message {
+  id: string;
   role: "user" | "assistant";
   content: string;
   sources?: { nodeId: string; score: number }[];
@@ -27,7 +28,10 @@ export default function ChatWidget() {
     const query = input.trim();
     if (!query || loading) return;
 
-    setMessages((prev) => [...prev, { role: "user", content: query }]);
+    setMessages((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), role: "user", content: query },
+    ]);
     setInput("");
     setLoading(true);
 
@@ -42,6 +46,7 @@ export default function ChatWidget() {
       setMessages((prev) => [
         ...prev,
         {
+          id: crypto.randomUUID(),
           role: "assistant",
           content: data.answer ?? "Error",
           sources: data.sources,
@@ -51,8 +56,10 @@ export default function ChatWidget() {
       setMessages((prev) => [
         ...prev,
         {
+          id: crypto.randomUUID(),
           role: "assistant",
           content: locale === "mn" ? "Алдаа гарлаа" : "Something went wrong",
+          sources: [],
         },
       ]);
     } finally {
@@ -177,9 +184,9 @@ export default function ChatWidget() {
                   : "Ask about React, JWT, Git, or any topic..."}
               </div>
             )}
-            {messages.map((m, i) => (
+            {messages.map((m) => (
               <div
-                key={i}
+                key={m.id}
                 style={{
                   alignSelf: m.role === "user" ? "flex-end" : "flex-start",
                   maxWidth: "85%",
