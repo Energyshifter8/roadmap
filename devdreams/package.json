@@ -9,10 +9,13 @@
     "format": "biome format --write src/",
     "lint": "biome lint --write src/",
     "check": "biome check --write src/",
-    "db:seed": "tsx src/scripts/seedRoadmap.ts"
+    "db:seed": "tsx src/scripts/seedRoadmap.ts",
+    "embed": "tsx src/scripts/embedRoadmap.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.106.0",
     "@base-ui/react": "^1.6.0",
+    "@pinecone-database/pinecone": "^8.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "firebase": "^12.15.0",
@@ -21,6 +24,7 @@
     "lucide-react": "^1.21.0",
     "next": "16.2.9",
     "next-intl": "^4.13.0",
+    "openai": "^6.45.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "shadcn": "^4.11.0",
