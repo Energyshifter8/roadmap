@@ -1,9 +1,8 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { Pinecone } from "@pinecone-database/pinecone";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
-import { Pinecone } from "@pinecone-database/pinecone";
-import OpenAI from "openai";
 
 const envPath = resolve(process.cwd(), ".env.local");
 if (existsSync(envPath)) {
@@ -15,7 +14,10 @@ if (existsSync(envPath)) {
     if (sepIndex === -1) continue;
     const key = trimmed.slice(0, sepIndex).trim();
     let value = trimmed.slice(sepIndex + 1).trim();
-    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
       value = value.slice(1, -1);
     }
     if (key) process.env[key] = value;
@@ -24,7 +26,7 @@ if (existsSync(envPath)) {
 
 async function main() {
   console.log("========================================");
-  console.log("  DevDreams — Roadmap Embedder");
+  console.log("  DevDreams — Roadmap Embedder (Pinecone-native)");
   console.log("========================================\n");
 
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
@@ -44,32 +46,27 @@ async function main() {
   }
   const firestore = getFirestore();
 
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
-  const indexName = process.env.PINECONE_INDEX_NAME ?? "quickstart";
+  const indexName =
+    process.env.PINECONE_INDEX_NAME ?? "llama-text-embed-v2-index";
 
   console.log(`  Using Pinecone index: ${indexName}\n`);
 
-  const existingIndexes = await pc.listIndexes();
-  const exists = existingIndexes.indexes?.some((i) => i.name === indexName);
-
-  if (!exists) {
-    console.log(`  Creating index "${indexName}"...`);
-    await pc.createIndex({
-      name: indexName,
-      dimension: 1536,
-      metric: "cosine",
-      spec: { serverless: { cloud: "aws", region: "us-east-1" } },
-    });
-    console.log("  ✓ Index created, waiting 10s for it to be ready...");
-    await new Promise((r) => setTimeout(r, 10000));
-  } else {
-    console.log(`  ✓ Index "${indexName}" already exists`);
-  }
+  const indexDescription = await pc.describeIndex(indexName);
+  const fieldMap = indexDescription.embed?.fieldMap as
+    | Record<string, string>
+    | undefined;
+  const textField = fieldMap ? Object.values(fieldMap)[0] : "text";
+  console.log(
+    `  Index model:       ${JSON.stringify(indexDescription.embed?.model ?? "unknown")}`,
+  );
+  console.log(`  Index dimension:   ${indexDescription.dimension}`);
+  console.log(`  Embed fieldMap:    ${JSON.stringify(fieldMap)}`);
+  console.log(`  Using text field:  "${textField}"\n`);
 
   const index = pc.index(indexName);
 
-  console.log("\n  Fetching all roadmap_details from Firestore...");
+  console.log("  Fetching all roadmap_details from Firestore...");
   const snapshot = await firestore.collection("roadmap_details").get();
   console.log(`  ✓ Found ${snapshot.size} documents\n`);
 
@@ -85,34 +82,28 @@ async function main() {
     resources: Array<{ title: string; url: string }>;
   }>;
 
-  console.log("  Generating embeddings (batches of 20)...");
-  const batchSize = 20;
+  console.log(
+    `  Upserting records with Pinecone-native embedding (batches of 50, field="${textField}")...`,
+  );
+  const batchSize = 50;
   let processed = 0;
 
   for (let i = 0; i < docs.length; i += batchSize) {
     const batch = docs.slice(i, i + batchSize);
 
-    const texts = batch.map((d) => `${d.nodeId}: ${d.description}`);
-
-    const embeddingRes = await openai.embeddings.create({
-      model: "text-embedding-3-small",
-      input: texts,
-    });
-
-    const vectors = batch.map((d, idx) => ({
+    const records = batch.map((d) => ({
       id: d.id,
-      values: embeddingRes.data[idx].embedding,
-      metadata: {
-        nodeId: d.nodeId,
-        description: d.description.slice(0, 1000),
-        resourceTitles: d.resources?.map((r) => r.title).join(" | ") ?? "",
-        resourceUrls: d.resources?.map((r) => r.url).join(" | ") ?? "",
-      },
+      [textField]: `${d.nodeId}: ${d.description}`,
+      nodeId: d.nodeId,
+      description: d.description.slice(0, 1000),
+      resourceTitles: d.resources?.map((r) => r.title).join(" | ") ?? "",
+      resourceUrls: d.resources?.map((r) => r.url).join(" | ") ?? "",
     }));
 
-    await index.upsert(vectors);
+    await index.upsertRecords({ records });
+
     processed += batch.length;
-    console.log(`  ✓ Embedded ${processed}/${docs.length}`);
+    console.log(`  ✓ Upserted ${processed}/${docs.length}`);
   }
 
   console.log("\n========================================");
@@ -120,7 +111,8 @@ async function main() {
   console.log("========================================");
   console.log(`  Total documents:  ${docs.length}`);
   console.log(`  Pinecone index:   ${indexName}`);
-  console.log(`  Embedding model:  text-embedding-3-small`);
+  console.log(`  Text field:       "${textField}"`);
+  console.log(`  Embedding model:  Pinecone-native (no OpenAI needed)`);
   console.log("========================================\n");
 }
 

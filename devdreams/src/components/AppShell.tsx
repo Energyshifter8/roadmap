@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import ChatWidget from "./ChatWidget";
 import Footer from "./Footer";
 import Navbar from "./Navbar";
 
@@ -12,6 +13,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         {children}
       </main>
       <Footer />
+      <ChatWidget />
     </>
   );
 }
