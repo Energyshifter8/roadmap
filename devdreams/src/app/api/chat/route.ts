@@ -1,5 +1,5 @@
-import { GoogleGenAI } from "@google/genai";
 import { Pinecone } from "@pinecone-database/pinecone";
+import Groq from "groq-sdk";
 import { type NextRequest, NextResponse } from "next/server";
 
 function getPineconeApiKey(): string {
@@ -8,9 +8,9 @@ function getPineconeApiKey(): string {
   return key;
 }
 
-function getGeminiApiKey(): string {
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) throw new Error("Missing GEMINI_API_KEY");
+function getGroqApiKey(): string {
+  const key = process.env.GROQ_API_KEY;
+  if (!key) throw new Error("Missing GROQ_API_KEY");
   return key;
 }
 
@@ -53,22 +53,23 @@ export async function POST(req: NextRequest) {
 
     const systemPrompt =
       locale === "mn"
-        ? `Чи DevDreams платформын AI туслах. Дараах roadmap topic-уудын мэдээллийг ашиглан хэрэглэгчийн асуултад Монгол хэлээр товч, тодорхой хариулна. Зөвхөн өгөгдсэн context-д тулгуурлан хариул.\n\nContext:\n${context}`
-        : `You are the DevDreams platform AI assistant. Using the following roadmap topic information, answer the user's question concisely and clearly. Only base your answer on the given context.\n\nContext:\n${context}`;
+        ? `Чи DevDreams платформын AI туслах. Дараах roadmap topic-уудын мэдээллийг ашиглан хэрэглэгчийн асуултад Монгол хэлээр товч, тодорхой хариулна. Зөвхөн өгөгдсөн context-д тулгуурлан хариул. Context-д байхгүй зүйлийг өөрөөр зохиож хариулахгүй.\n\nContext:\n${context}`
+        : `You are the DevDreams platform AI assistant. Using the following roadmap topic information, answer the user's question concisely and clearly. Only base your answer on the given context. Don't make up information not in the context.\n\nContext:\n${context}`;
 
-    const ai = new GoogleGenAI({ apiKey: getGeminiApiKey() });
+    const groq = new Groq({ apiKey: getGroqApiKey() });
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
-      contents: query,
-      config: {
-        systemInstruction: systemPrompt,
-        maxOutputTokens: 500,
-      },
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: query },
+      ],
+      max_tokens: 500,
+      temperature: 0.5,
     });
 
     const answer =
-      response.text ??
+      completion.choices[0]?.message?.content ??
       (locale === "mn"
         ? "Хариулт үүсгэхэд алдаа гарлаа."
         : "Failed to generate answer.");
