@@ -46,7 +46,12 @@ async function main() {
   }
   const firestore = getFirestore();
 
-  const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
+  const pineconeApiKey = process.env.PINECONE_API_KEY;
+  if (!pineconeApiKey) {
+    console.error("✖ Missing PINECONE_API_KEY");
+    process.exit(1);
+  }
+  const pc = new Pinecone({ apiKey: pineconeApiKey });
   const indexName =
     process.env.PINECONE_INDEX_NAME ?? "llama-text-embed-v2-index";
 
